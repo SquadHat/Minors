@@ -1,0 +1,299 @@
+-- Load Kavo UI library
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("Hunting Nigga Rebirth", "DarkTheme")
+
+-- Function to teleport to an item and trigger a fireproximity prompt
+local function teleportToItem(itemPart)
+    local player = game.Players.LocalPlayer
+    local char = player.Character
+    local origPos = char.HumanoidRootPart.CFrame
+
+    -- Teleport to the item
+    char:SetPrimaryPartCFrame(CFrame.new(itemPart.Position))
+
+    -- Wait for a short duration before teleporting back to avoid interference
+    wait(0.1)
+
+    -- Teleport back to the original position
+    char:SetPrimaryPartCFrame(origPos)
+
+    -- Fire the proximity prompt on the item
+    local itemPrompt = itemPart:FindFirstChild("PickupPrompt")
+    if itemPrompt then
+        fireproximityprompt(itemPrompt)
+    end
+end
+
+-- Function to teleport to a CFrame position and trigger a fireproximity prompt
+    local function teleportToPosition(position)
+        local player = game.Players.LocalPlayer
+        local char = player.Character
+        local origPos = char.HumanoidRootPart.CFrame
+
+        -- Teleport to the position
+        char:SetPrimaryPartCFrame(CFrame.new(position))
+
+        -- Wait for a short duration before triggering the prompt
+        wait(0.1)
+
+        -- Trigger the proximity prompt at the position
+        local buildPrompt = workspace.Objective.RadioPrim.Prim.BuildPrompt
+        if buildPrompt then
+            fireproximityprompt(buildPrompt)
+        end
+
+        -- Teleport back to the original position
+        char:SetPrimaryPartCFrame(origPos)
+    end
+
+-- Function to create ESP billboards for each entity
+local function createBillboard(entityName, backgroundColor)
+    local entity = game.workspace.Entities:FindFirstChild(entityName)
+    if entity and entity:FindFirstChild("UpperTorso") then
+        local billboard = Instance.new('BillboardGui', entity.UpperTorso)
+        billboard.AlwaysOnTop = true
+        billboard.Size = UDim2.new(5, 0, 5, 0)
+
+        local frame = Instance.new('Frame', billboard)
+        frame.Size = UDim2.new(1, 0, 1, 0)
+        frame.BackgroundTransparency = 0
+        frame.BackgroundColor3 = backgroundColor
+        return billboard
+    end
+end
+
+-- Create a new Kavo UI tab for Main
+local MainTab = Window:NewTab("Main")
+local MainSection = MainTab:NewSection("Weapons")
+
+-- List of weapon names to teleport to
+local weapons = {
+    "Axe",
+    "Pipe",
+    "Crowbar",
+    "Mine",
+}
+
+-- Dropdown to select the weapon
+local selectedWeapon = weapons[1] -- Default to the first weapon in the list
+MainSection:NewDropdown("Select Weapon", "Choose a weapon to teleport to", weapons, function(weaponName)
+    selectedWeapon = weaponName
+end)
+
+-- Button to trigger the teleport to the selected weapon
+MainSection:NewButton("Teleport to Selected Weapon", "Teleport to the selected weapon and pick it up", function()
+    local weaponPart = workspace.Pickups[selectedWeapon .. "Pickup"].Pickup
+    if weaponPart then
+        teleportToItem(weaponPart)
+    else
+        warn("Weapon not found:", selectedWeapon)
+    end
+end)
+
+local MainSection2 = MainTab:NewSection("Items")
+
+-- List of item names to teleport to
+local items = {
+    "Medkit",
+    "Cola",
+    "Battery",
+    "Radio Parts",
+}
+
+-- Table to map item names to their corresponding path names
+local itemPaths = {
+    ["Medkit"] = "MedkitPickup", -- Example: "Medkit" item has a path "MedkitPickup"
+    ["Cola"] = "ColaPickup",
+    ["Battery"] = "BatteryPickup",
+    ["Radio Parts"] = "ObjPickup",-- Example: "Cola" item has a path "ColaPickup"
+    -- Add more mappings as needed for other items
+}
+
+-- Dropdown to select the item
+local selectedItem = items[1] -- Default to the first item in the list
+MainSection2:NewDropdown("Select Item", "Choose an item to teleport to", items, function(itemName)
+    selectedItem = itemName
+end)
+
+-- Button to trigger the teleport to the selected item
+MainSection2:NewButton("Teleport to Selected Item", "Teleport to the selected item and pick it up", function()
+    local itemPart = workspace.Pickups[itemPaths[selectedItem]].Pickup
+    if itemPart then
+        teleportToItem(itemPart)
+    else
+        warn("Item not found:", selectedItem)
+        end
+    end)
+
+-- Create a new Kavo UI tab for ESP
+local EspTab = Window:NewTab("ESP")
+local EspSection = EspTab:NewSection("Crawlers")
+
+-- ESP Toggle Function
+local espEnabled = false
+local espBillboards = {}
+
+local function createEspBillboards()
+    if espEnabled then
+        -- Enable ESP billboards for existing entities
+        for entityName, backgroundColor in pairs({
+            ["Crawler"] = Color3.new(1, 0, 0),         -- Red
+            ["DreadCrawler"] = Color3.new(0.39, 0, 0), -- Dark Red
+            ["Arachnicrawler"] = Color3.new(1, 1, 1),  -- White
+            ["Wretch"] = Color3.new(0, 1, 0),          -- Green
+            ["ExoCrawler"] = Color3.new(1, 0.65, 0)    -- Orange
+        }) do
+            espBillboards[entityName] = createBillboard(entityName, backgroundColor)
+        end
+
+        -- Function to check and create ESP for new entities
+        local function checkAndCreateESP()
+            if espEnabled then
+                for entityName, backgroundColor in pairs({
+                    ["Crawler"] = Color3.new(1, 0, 0),         -- Red
+                    ["DreadCrawler"] = Color3.new(0.39, 0, 0), -- Dark Red
+                    ["Arachnicrawler"] = Color3.new(1, 1, 1),  -- White
+                    ["Wretch"] = Color3.new(0, 1, 0),          -- Green
+                    ["ExoCrawler"] = Color3.new(1, 0.65, 0)    -- Orange
+                }) do
+                    if not espBillboards[entityName] then
+                        espBillboards[entityName] = createBillboard(entityName, backgroundColor)
+                    end
+                end
+            end
+        end
+
+        -- Start the loop to check and create ESP for new entities
+        spawn(function()
+            while espEnabled do
+                wait(1) -- Adjust the interval (in seconds) between checks
+                checkAndCreateESP()
+            end
+        end)
+    else
+        -- Disable ESP billboards for existing entities
+        for _, billboard in pairs(espBillboards) do
+            billboard:Destroy()
+        end
+        espBillboards = {}
+    end
+end
+
+EspSection:NewToggle("ESP Crawlers", "Toggle ESP for crawlers", function(state)
+    espEnabled = state
+    createEspBillboards()
+end)
+
+-- Create a new Kavo UI tab for Misc
+local MiscTab = Window:NewTab("Misc")
+local MiscSection = MiscTab:NewSection("Miscellaneous")
+
+-- Button to build the radio
+    MiscSection:NewButton("Build Radio", "Require Radio Parts", function()
+        local radioTable = workspace.Objective.RadioPrim and workspace.Objective.RadioPrim.Table
+        if radioTable then
+            local delayTime = 1.5 -- Adjust the delay time (in seconds) as needed
+            teleportToPosition(radioTable.Position, delayTime)
+            for i = 1, 3 do
+                local buildPrompt = workspace.Objective.RadioPrim.Prim.BuildPrompt
+                if buildPrompt then
+                    fireproximityprompt(buildPrompt)
+                    wait(delayTime) -- Add the same delay time before firing the prompt again
+                else
+                    warn("Build prompt not found.")
+                    break
+                end
+            end
+        else
+            warn("Radio table not found.")
+        end
+    end)
+
+-- Function to perform the "g" button hit with damage multiplier
+local function onKeyPressed(key)
+    if key == "g" then
+        local player = game.Players.LocalPlayer
+        local args = {
+            [1] = "UseItem",
+            [2] = workspace:WaitForChild(player.Name)
+        }
+
+        -- Apply the damage multiplier if enabled
+        if damageMultiplierEnabled then
+            for i = 1, damageMultiplier do
+                game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PrimaryEvent"):FireServer(unpack(args))
+                wait() -- Adjust this wait time (in seconds) if necessary to control the speed of the hits.
+            end
+        else
+            game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PrimaryEvent"):FireServer(unpack(args))
+        end
+    end
+end
+
+-- Create a new section for Damage Multiplier in Misc tab
+local DamageMultiplierSection = MiscTab:NewSection("Damage Multiplier")
+DamageMultiplierSection:NewLabel("You need pipe for this")
+
+-- Damage multiplier variables
+local damageMultiplier = 1
+local damageMultiplierEnabled = false
+local connectionsMultiplier = {}
+
+-- Function to handle the Damage Multiplier change
+local function handleDamageMultiplier(value)
+    if damageMultiplier ~= value then
+        damageMultiplier = value
+
+        if damageMultiplierEnabled then
+            -- Update the number of connections based on the damageMultiplier value
+            local currentConnections = #connectionsMultiplier
+            if currentConnections < damageMultiplier then
+                for i = currentConnections + 1, damageMultiplier do
+                    connectionsMultiplier[i] = game.Players.LocalPlayer:GetMouse().KeyDown:Connect(onKeyPressed)
+                end
+            elseif currentConnections > damageMultiplier then
+                for i = currentConnections, damageMultiplier + 1, -1 do
+                    connectionsMultiplier[i]:Disconnect()
+                    connectionsMultiplier[i] = nil
+                end
+            end
+        end
+    end
+end
+
+-- Function to toggle the Damage Multiplier
+local function toggleDamageMultiplier(state)
+    damageMultiplierEnabled = state
+
+    if damageMultiplierEnabled then
+        -- Connect the "g" button event with the damage multiplier
+        for i = 1, damageMultiplier do
+            connectionsMultiplier[i] = game.Players.LocalPlayer:GetMouse().KeyDown:Connect(onKeyPressed)
+        end
+    else
+        -- Disconnect the "g" button event with the damage multiplier
+        for _, connection in ipairs(connectionsMultiplier) do
+            connection:Disconnect()
+        end
+        connectionsMultiplier = {}
+    end
+end
+
+-- Create a slider for Damage Multiplier in Misc tab
+DamageMultiplierSection:NewSlider("Damage Multiplier", "Set the damage multiplier for hitting", 21, 1, function(value)
+    handleDamageMultiplier(value)
+end)
+
+-- Create a toggle button for Damage Multiplier in Misc tab
+DamageMultiplierSection:NewToggle("Enable Damage Multiplier", "Toggle for the slider", function(state)
+    toggleDamageMultiplier(state)
+end)
+
+-- Creating Settings
+
+local Settings = Window:NewTab("Settings")
+
+local SettingSection = Settings:NewSection("Keybind")
+SettingSection:NewKeybind("UI", "Toggle UI", Enum.KeyCode.K, function()
+	Library:ToggleUI()
+end)
