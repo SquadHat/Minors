@@ -209,6 +209,12 @@ local MiscSection = MiscTab:NewSection("Miscellaneous")
         end
     end)
 
+-- Toggle button for Day/Night
+    MiscSection:NewToggle("Day/Night", "Toggle between day and night", function(state)
+        workspace.GameSettings.NightTime.Value = not state -- Toggle between true and false
+    end)
+end)
+
 -- Function to perform the "g" button hit with damage multiplier
 local function onKeyPressed(key)
     if key == "g" then
