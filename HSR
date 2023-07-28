@@ -214,6 +214,11 @@ MiscSection:NewToggle("Toggle Day/Night", "Toggle between day and night", functi
     workspace.GameSetting.NightTime.Value = not state
 end)
 
+-- Create manual game end
+MiscSection:NewButton("End Game", "Teleport back to lobby and also give you xp without wasting time, doesn't work for victory", function()
+    workspace.GameSetting.GameEnded.Value = true
+end)
+
 -- Function to perform the "g" button hit with damage multiplier
 local function onKeyPressed(key)
     if key == "g" then
