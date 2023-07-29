@@ -294,7 +294,7 @@ DamageMultiplierSection:NewSlider("Damage Multiplier", "Set the damage multiplie
 end)
 
 -- Create a toggle button for Damage Multiplier in Misc tab
-DamageMultiplierSection:NewToggle("Enable Damage Multiplier", "Toggle for the slider", function(state)
+DamageMultiplierSection:NewToggle("Enable Damage Multiplier (G)", "Press G key to Attack", function(state)
     toggleDamageMultiplier(state)
 end)
 
