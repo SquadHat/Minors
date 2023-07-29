@@ -41,7 +41,7 @@ end
         if buildPrompt then
             fireproximityprompt(buildPrompt)
         end
-
+        wait(2)
         -- Teleport back to the original position
         char:SetPrimaryPartCFrame(origPos)
     end
@@ -198,7 +198,6 @@ local MiscSection = MiscTab:NewSection("Miscellaneous")
                 local buildPrompt = workspace.Objective.RadioPrim.Prim.BuildPrompt
                 if buildPrompt then
                     fireproximityprompt(buildPrompt)
-                    wait(delayTime) -- Add the same delay time before firing the prompt again
                 else
                     warn("Build prompt not found.")
                     break
