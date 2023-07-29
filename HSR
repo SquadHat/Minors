@@ -208,14 +208,14 @@ local MiscSection = MiscTab:NewSection("Miscellaneous")
         end
     end)
 
--- Create a toggle button for day/night in Misc tab
-MiscSection:NewToggle("Toggle Day/Night", "Toggle between day and night", function(state)
-    workspace.GameSetting.NightTime.Value = not state
-end)
-
 -- Create manual game end
 MiscSection:NewButton("End Game", "Teleport back to lobby and also give you xp without wasting time, doesn't work for victory", function()
     workspace.GameSetting.GameEnded.Value = true
+end)
+
+-- Create a toggle button for day/night in Misc tab
+MiscSection:NewToggle("Toggle Day/Night", "Toggle between day and night", function(state)
+    workspace.GameSetting.NightTime.Value = not state
 end)
 
 -- Function to perform the "g" button hit with damage multiplier
