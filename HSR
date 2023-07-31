@@ -12,7 +12,7 @@ local function teleportToItem(itemPart)
     char:SetPrimaryPartCFrame(CFrame.new(itemPart.Position))
 
     -- Wait for a short duration before teleporting back to avoid interference
-    wait(0.1)
+    wait(0.15)
 
     -- Teleport back to the original position
     char:SetPrimaryPartCFrame(origPos)
@@ -21,44 +21,6 @@ local function teleportToItem(itemPart)
     local itemPrompt = itemPart:FindFirstChild("PickupPrompt")
     if itemPrompt then
         fireproximityprompt(itemPrompt)
-    end
-end
-
--- Function to teleport to a CFrame position and trigger a fireproximity prompt
-    local function teleportToPosition(position)
-        local player = game.Players.LocalPlayer
-        local char = player.Character
-        local origPos = char.HumanoidRootPart.CFrame
-
-        -- Teleport to the position
-        char:SetPrimaryPartCFrame(CFrame.new(position))
-
-        -- Wait for a short duration before triggering the prompt
-        wait(0.1)
-
-        -- Trigger the proximity prompt at the position
-        local buildPrompt = workspace.Objective.RadioPrim.Prim.BuildPrompt
-        if buildPrompt then
-            fireproximityprompt(buildPrompt)
-        end
-        wait(2)
-        -- Teleport back to the original position
-        char:SetPrimaryPartCFrame(origPos)
-    end
-
--- Function to create ESP billboards for each entity
-local function createBillboard(entityName, backgroundColor)
-    local entity = game.workspace.Entities:FindFirstChild(entityName)
-    if entity and entity:FindFirstChild("UpperTorso") then
-        local billboard = Instance.new('BillboardGui', entity.UpperTorso)
-        billboard.AlwaysOnTop = true
-        billboard.Size = UDim2.new(5, 0, 5, 0)
-
-        local frame = Instance.new('Frame', billboard)
-        frame.Size = UDim2.new(1, 0, 1, 0)
-        frame.BackgroundTransparency = 0
-        frame.BackgroundColor3 = backgroundColor
-        return billboard
     end
 end
 
@@ -72,6 +34,9 @@ local weapons = {
     "Pipe",
     "Crowbar",
     "Mine",
+    "Shotgun",
+    "Pistol",
+    "Volt",
 }
 
 -- Dropdown to select the weapon
@@ -131,39 +96,77 @@ local EspSection = EspTab:NewSection("Crawlers")
 
 -- ESP Toggle Function
 local espEnabled = false
-local espBillboards = {}
+local espLabels = {} -- Table to store the ESP labels
 
-local function createEspBillboards()
+local function createEspLabels()
     if espEnabled then
-        -- Enable ESP billboards for existing entities
-        for entityName, backgroundColor in pairs({
+        -- Create ESP labels for existing entities
+        local entities = game.workspace.Entities:GetChildren()
+        entities[#entities + 1] = workspace.Entities2:FindFirstChild("ZERO") -- Add "ZERO" entity
+        for entityName, color in pairs({
             ["Crawler"] = Color3.new(1, 0, 0),         -- Red
             ["DreadCrawler"] = Color3.new(0.39, 0, 0), -- Dark Red
             ["Arachnicrawler"] = Color3.new(1, 1, 1),  -- White
             ["Wretch"] = Color3.new(0, 1, 0),          -- Green
-            ["ExoCrawler"] = Color3.new(1, 0.65, 0)    -- Orange
+            ["ExoCrawler"] = Color3.new(1, 0.65, 0),   -- Orange
+            ["ZERO"] = Color3.fromRGB(220, 20, 60),    -- Crimson
         }) do
-            espBillboards[entityName] = createBillboard(entityName, backgroundColor)
+            for _, entity in ipairs(entities) do
+                if entity.Name == entityName and entity:FindFirstChild("UpperTorso") then
+                    local label = Instance.new("BillboardGui", entity.UpperTorso)
+                    label.Size = UDim2.new(0, 100, 0, 30)
+                    label.StudsOffset = Vector3.new(0, 3, 0) -- Adjust the offset to position the label above the head
+                    label.AlwaysOnTop = true
+
+                    local textLabel = Instance.new("TextLabel", label)
+                    textLabel.Size = UDim2.new(1, 0, 1, 0)
+                    textLabel.BackgroundTransparency = 1
+                    textLabel.Text = entityName
+                    textLabel.TextColor3 = color
+                    textLabel.TextSize = 20
+                    textLabel.Font = Enum.Font.SourceSansBold
+
+                    espLabels[entity] = label
+                end
+            end
         end
 
-        -- Function to check and create ESP for new entities
+        -- Function to check and create ESP labels for new entities
         local function checkAndCreateESP()
             if espEnabled then
-                for entityName, backgroundColor in pairs({
+                local entities = game.workspace.Entities:GetChildren()
+                entities[#entities + 1] = workspace.Entities2:FindFirstChild("ZERO") -- Add "ZERO" entity
+                for entityName, color in pairs({
                     ["Crawler"] = Color3.new(1, 0, 0),         -- Red
                     ["DreadCrawler"] = Color3.new(0.39, 0, 0), -- Dark Red
                     ["Arachnicrawler"] = Color3.new(1, 1, 1),  -- White
                     ["Wretch"] = Color3.new(0, 1, 0),          -- Green
-                    ["ExoCrawler"] = Color3.new(1, 0.65, 0)    -- Orange
+                    ["ExoCrawler"] = Color3.new(1, 0.65, 0),   -- Orange
+                    ["ZERO"] = Color3.fromRGB(220, 20, 60),    -- Crimson
                 }) do
-                    if not espBillboards[entityName] then
-                        espBillboards[entityName] = createBillboard(entityName, backgroundColor)
+                    for _, entity in ipairs(entities) do
+                        if entity.Name == entityName and entity:FindFirstChild("UpperTorso") and not espLabels[entity] then
+                            local label = Instance.new("BillboardGui", entity.UpperTorso)
+                            label.Size = UDim2.new(0, 100, 0, 30)
+                            label.StudsOffset = Vector3.new(0, 3, 0) -- Adjust the offset to position the label above the head
+                            label.AlwaysOnTop = true
+
+                            local textLabel = Instance.new("TextLabel", label)
+                            textLabel.Size = UDim2.new(1, 0, 1, 0)
+                            textLabel.BackgroundTransparency = 1
+                            textLabel.Text = entityName
+                            textLabel.TextColor3 = color
+                            textLabel.TextSize = 20
+                            textLabel.Font = Enum.Font.SourceSansBold
+
+                            espLabels[entity] = label
+                        end
                     end
                 end
             end
         end
 
-        -- Start the loop to check and create ESP for new entities
+        -- Start the loop to check and create ESP labels for new entities
         spawn(function()
             while espEnabled do
                 wait(1) -- Adjust the interval (in seconds) between checks
@@ -171,17 +174,17 @@ local function createEspBillboards()
             end
         end)
     else
-        -- Disable ESP billboards for existing entities
-        for _, billboard in pairs(espBillboards) do
-            billboard:Destroy()
+        -- Disable ESP labels for existing entities
+        for entity, label in pairs(espLabels) do
+            label:Destroy()
+            espLabels[entity] = nil
         end
-        espBillboards = {}
     end
 end
 
 EspSection:NewToggle("ESP Crawlers", "Toggle ESP for crawlers", function(state)
     espEnabled = state
-    createEspBillboards()
+    createEspLabels()
 end)
 
 -- Create a new Kavo UI tab for Misc
@@ -189,24 +192,36 @@ local MiscTab = Window:NewTab("Misc")
 local MiscSection = MiscTab:NewSection("Miscellaneous")
 
 -- Button to build the radio
-    MiscSection:NewButton("Build Radio", "Require Radio Parts", function()
-        local radioTable = workspace.Objective.RadioPrim and workspace.Objective.RadioPrim.Table
-        if radioTable then
-            local delayTime = 1.5 -- Adjust the delay time (in seconds) as needed
-            teleportToPosition(radioTable.Position, delayTime)
+MiscSection:NewButton("Build Radio", "Require Radio Parts", function()
+    local player = game.Players.LocalPlayer
+    local char = player.Character
+    local origPos = char.HumanoidRootPart.CFrame
+
+    local radioTable = workspace.Objective.RadioPrim and workspace.Objective.RadioPrim.Table
+    if radioTable then
+        -- Teleport to the radioTable.Position
+        char:SetPrimaryPartCFrame(CFrame.new(radioTable.Position))
+
+        -- Wait for a short duration before triggering the prompt
+        wait(0.1)
+
+        -- Trigger the proximity prompt at the radioTable position for 3 times
+        local buildPrompt = workspace.Objective.RadioPrim.Prim.BuildPrompt
+        if buildPrompt then
             for i = 1, 3 do
-                local buildPrompt = workspace.Objective.RadioPrim.Prim.BuildPrompt
-                if buildPrompt then
-                    fireproximityprompt(buildPrompt)
-                else
-                    warn("Build prompt not found.")
-                    break
-                end
+                fireproximityprompt(buildPrompt)
+                wait(0.1) -- Adjust this wait time (in seconds) if necessary to control the speed of the prompts.
             end
         else
-            warn("Radio table not found.")
+            warn("Build prompt not found.")
         end
-    end)
+        wait(2)
+        -- Teleport back to the original position
+        char:SetPrimaryPartCFrame(origPos)
+    else
+        warn("Radio table not found.")
+    end
+end)
 
 -- Create manual game end
 MiscSection:NewButton("End Game", "Teleport back to lobby and also give you xp without wasting time, doesn't work for victory", function()
@@ -218,8 +233,7 @@ MiscSection:NewToggle("Toggle Day/Night", "Toggle between day and night", functi
     workspace.GameSetting.NightTime.Value = not state
 end)
 
--- Function to perform the "g" button hit with damage multiplier
-local function onKeyPressed(key)
+local function onKeyPressed(key, damageMultiplier)
     if key == "g" then
         local player = game.Players.LocalPlayer
         local args = {
@@ -238,6 +252,109 @@ local function onKeyPressed(key)
         end
     end
 end
+
+-- Crawler damage multiplier variables
+local crawlerDamageMultiplier = 1
+local connectionsCrawlerMultiplier = {}
+
+-- Function to handle the Crawler Damage Multiplier change
+local function handleCrawlerDamageMultiplier(value)
+    if crawlerDamageMultiplier ~= value then
+        crawlerDamageMultiplier = value
+
+        -- Update the number of connections based on the crawlerDamageMultiplier value
+        local currentConnections = #connectionsCrawlerMultiplier
+        if currentConnections < crawlerDamageMultiplier then
+            for i = currentConnections + 1, crawlerDamageMultiplier do
+                connectionsCrawlerMultiplier[i] = game.Players.LocalPlayer:GetMouse().KeyDown:Connect(function(key)
+                    onKeyPressed(key, crawlerDamageMultiplier)
+                end)
+            end
+        elseif currentConnections > crawlerDamageMultiplier then
+            for i = currentConnections, crawlerDamageMultiplier + 1, -1 do
+                connectionsCrawlerMultiplier[i]:Disconnect()
+                connectionsCrawlerMultiplier[i] = nil
+            end
+        end
+    end
+end
+
+-- Function to auto-kill crawlers with the given damage multiplier
+local function autoKillCrawlers(damageMultiplier)
+    local crawlerNames = {
+        "Crawler",
+        "DreadCrawler",
+        "Arachnicrawler",
+        "Wretch",
+        "ExoCrawler",
+    }
+
+    local zeroEntity = workspace.Entities2:FindFirstChild("ZERO")
+
+    local player = game.Players.LocalPlayer
+    local char = player.Character
+    local humanoid = char and char:FindFirstChild("Humanoid")
+    if not humanoid or humanoid.Health <= 0 then
+        return
+    end
+
+    -- Store the original position before teleporting
+    local origPos = char.HumanoidRootPart.CFrame
+
+    -- Function to kill crawlers at the target position
+    local function killCrawlers(targetPosition)
+        char:SetPrimaryPartCFrame(CFrame.new(targetPosition))
+
+        wait(0.1) -- Wait for a short duration before triggering the hit
+        for i = 1, damageMultiplier do
+            onKeyPressed("g", damageMultiplier)
+            wait() -- Adjust this wait time (in seconds) if necessary to control the speed of the hits.
+        end
+
+        wait(0.22) -- Wait for a short duration before teleporting back
+        char:SetPrimaryPartCFrame(origPos)
+    end
+
+    -- Function to handle killing the "ZERO" entity
+    local function killZero()
+        if zeroEntity and zeroEntity:FindFirstChild("UpperTorso") then
+            local targetPosition = zeroEntity.UpperTorso.Position
+            killCrawlers(targetPosition)
+        end
+    end
+
+    -- Function to handle killing the regular crawlers
+    local function killRegularCrawlers()
+        for _, crawlerName in ipairs(crawlerNames) do
+            local crawler = game.workspace.Entities:FindFirstChild(crawlerName)
+            if crawler and crawler:FindFirstChild("UpperTorso") then
+                local targetPosition = crawler.UpperTorso.Position
+                killCrawlers(targetPosition)
+            end
+        end
+    end
+
+    -- Call the functions to kill crawlers and "ZERO"
+    killRegularCrawlers()
+    killZero() -- Check and kill "ZERO" entity if it exists
+end
+
+-- Create a slider for Crawler Damage Multiplier in Misc tab
+local DamageMultiplierSlider = MiscSection:NewSlider("Auto Kill (DM)", "Set the damage multiplier for auto-killing crawlers", 64, 1, function(value)
+    handleCrawlerDamageMultiplier(value)
+end)
+
+-- Auto Kill Crawlers toggle (This will also serve as the "Enable Damage Multiplier (G)" toggle)
+local autoKillEnabled = false
+MiscSection:NewToggle("Auto Kill Crawlers", "Toggle to automatically kill crawlers", function(state)
+    autoKillEnabled = state
+    if autoKillEnabled then
+        while autoKillEnabled do
+            autoKillCrawlers(crawlerDamageMultiplier) -- Pass the damage multiplier to the function
+            wait(1) -- Adjust the interval (in seconds) between killing crawlers
+        end
+    end
+end)
 
 -- Create a new section for Damage Multiplier in Misc tab
 local DamageMultiplierSection = MiscTab:NewSection("Damage Multiplier")
@@ -289,7 +406,7 @@ local function toggleDamageMultiplier(state)
 end
 
 -- Create a slider for Damage Multiplier in Misc tab
-DamageMultiplierSection:NewSlider("Damage Multiplier", "Set the damage multiplier for hitting", 21, 1, function(value)
+DamageMultiplierSection:NewSlider("Damage Multiplier", "Set the damage multiplier for hitting", 64, 1, function(value)
     handleDamageMultiplier(value)
 end)
 
@@ -305,4 +422,8 @@ local Settings = Window:NewTab("Settings")
 local SettingSection = Settings:NewSection("Keybind")
 SettingSection:NewKeybind("UI", "Toggle UI", Enum.KeyCode.K, function()
 	Library:ToggleUI()
+end)
+
+SettingSection:NewSlider("Max Zoom Distance", "Set the damage multiplier for hitting", 64, 1, function(value)
+    handleDamageMultiplier(value)
 end)
