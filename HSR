@@ -424,6 +424,6 @@ SettingSection:NewKeybind("UI", "Toggle UI", Enum.KeyCode.K, function()
 	Library:ToggleUI()
 end)
 
-SettingSection:NewSlider("Max Zoom Distance", "Set the damage multiplier for hitting", 64, 1, function(value)
-    handleDamageMultiplier(value)
+SettingSection:NewSlider("Max Zoom Distance", "Set the damage multiplier for hitting", 50, 3, function(Zoom)
+    game:GetService("Players").LocalPlayer.CameraMaxZoomDistance = Zoom
 end)
