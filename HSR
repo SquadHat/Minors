@@ -208,7 +208,7 @@ local function createEspLabels()
     end
 end
 
-EspSection:NewToggle("ESP Crawlers", "Toggle ESP for crawlers", function(state)
+EspSection:NewToggle("ESP Crawlers/ZERO", "Toggle ESP for crawlers", function(state)
     espEnabled = state
     createEspLabels()
 end)
