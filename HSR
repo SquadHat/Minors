@@ -340,13 +340,13 @@ local function autoKillCrawlers(damageMultiplier)
 end
 
 -- Create a slider for Crawler Damage Multiplier in Misc tab
-local DamageMultiplierSlider = MiscSection:NewSlider("Auto Kill (DM)", "Set the damage multiplier for auto-killing crawlers", 64, 1, function(value)
+local DamageMultiplierSlider = MiscSection:NewSlider("Auto Kill (DM)", "Set the damage multiplier for auto-killing crawlers", 30, 1, function(value)
     handleCrawlerDamageMultiplier(value)
 end)
 
 -- Auto Kill Crawlers toggle (This will also serve as the "Enable Damage Multiplier (G)" toggle)
 local autoKillEnabled = false
-MiscSection:NewToggle("Auto Kill Crawlers", "Toggle to automatically kill crawlers", function(state)
+MiscSection:NewToggle("Auto Kill Crawlers/ZERO", "Toggle to automatically kill crawlers and zero", function(state)
     autoKillEnabled = state
     if autoKillEnabled then
         while autoKillEnabled do
