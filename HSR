@@ -406,7 +406,7 @@ local function toggleDamageMultiplier(state)
 end
 
 -- Create a slider for Damage Multiplier in Misc tab
-DamageMultiplierSection:NewSlider("Damage Multiplier", "Set the damage multiplier for hitting", 64, 1, function(value)
+DamageMultiplierSection:NewSlider("Damage Multiplier", "Set the damage multiplier for hitting", 30, 1, function(value)
     handleDamageMultiplier(value)
 end)
 
