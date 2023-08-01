@@ -1,6 +1,6 @@
 -- Load Kavo UI library
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Library.CreateLib("Hunting Nigga Rebirth", "DarkTheme")
+local Window = Library.CreateLib("Hunting Season REBIRTH | V0.0.2", "DarkTheme")
 
 -- Function to teleport to an item and trigger a fireproximity prompt
 local function teleportToItem(itemPart)
@@ -112,24 +112,37 @@ local function createEspLabels()
             ["ZERO"] = Color3.fromRGB(220, 20, 60),    -- Crimson
         }) do
             for _, entity in ipairs(entities) do
-                if entity.Name == entityName and entity:FindFirstChild("UpperTorso") then
-                    local label = Instance.new("BillboardGui", entity.UpperTorso)
-                    label.Size = UDim2.new(0, 100, 0, 30)
-                    label.StudsOffset = Vector3.new(0, 3, 0) -- Adjust the offset to position the label above the head
-                    label.AlwaysOnTop = true
+            if entity.Name == entityName and entity:FindFirstChild("UpperTorso") then
+                local label = Instance.new("BillboardGui", entity.UpperTorso)
+                label.Size = UDim2.new(0, 100, 0, 50)
+                label.StudsOffset = Vector3.new(0, 7, 0)
+                label.AlwaysOnTop = true
 
-                    local textLabel = Instance.new("TextLabel", label)
-                    textLabel.Size = UDim2.new(1, 0, 1, 0)
-                    textLabel.BackgroundTransparency = 1
-                    textLabel.Text = entityName
-                    textLabel.TextColor3 = color
-                    textLabel.TextSize = 20
-                    textLabel.Font = Enum.Font.SourceSansBold
+                local textLabel = Instance.new("TextLabel", label)
+                textLabel.Size = UDim2.new(1, 0, 0.25, 0) -- Reduce the height of the text label
+                textLabel.Position = UDim2.new(0, 0, 0.5, 0) -- Position the text at the top
+                textLabel.BackgroundTransparency = 1
+                textLabel.Text = entityName
+                textLabel.TextColor3 = color
+                textLabel.TextSize = 20
+                textLabel.Font = Enum.Font.SourceSansBold
 
-                    espLabels[entity] = label
+                local icon = Instance.new("ImageLabel", label)
+                icon.Size = UDim2.new(0, 35, 0, 35) -- Set the width and height for the icon (normal size)
+                icon.Position = UDim2.new(0.49, 0, 0.0125, 0) -- Move the icon 70% above the text
+                icon.AnchorPoint = Vector2.new(0.5, 0.5) -- Center the icon around its center point
+                icon.BackgroundTransparency = 1
+                if entityName == "ZERO" then
+                    icon.Image = "rbxassetid://14242231316" -- Set the icon image for ZERO
+                else
+                    icon.Image = "rbxassetid://13176863551" -- Set the icon image for crawlers
                 end
+                icon.ZIndex = 2 -- Set a higher ZIndex for the icon to render on top of other parts
+
+                espLabels[entity] = label
             end
         end
+    end
 
         -- Function to check and create ESP labels for new entities
         local function checkAndCreateESP()
@@ -147,17 +160,30 @@ local function createEspLabels()
                     for _, entity in ipairs(entities) do
                         if entity.Name == entityName and entity:FindFirstChild("UpperTorso") and not espLabels[entity] then
                             local label = Instance.new("BillboardGui", entity.UpperTorso)
-                            label.Size = UDim2.new(0, 100, 0, 30)
-                            label.StudsOffset = Vector3.new(0, 3, 0) -- Adjust the offset to position the label above the head
-                            label.AlwaysOnTop = true
+                            label.Size = UDim2.new(0, 100, 0, 50) -- Increase the size to accommodate the icon
+                            label.StudsOffset = Vector3.new(0, 7, 0) -- Adjust the offset to position the label above the head
+                            label.AlwaysOnTop = true -- Make the label appear on top of other parts
 
                             local textLabel = Instance.new("TextLabel", label)
-                            textLabel.Size = UDim2.new(1, 0, 1, 0)
+                            textLabel.Size = UDim2.new(1, 0, 0.25, 0) -- Reduce the height to make space for the icon
+                            textLabel.Position = UDim2.new(0, 0, 0.5, 0) -- Position the text at the top
                             textLabel.BackgroundTransparency = 1
                             textLabel.Text = entityName
                             textLabel.TextColor3 = color
                             textLabel.TextSize = 20
                             textLabel.Font = Enum.Font.SourceSansBold
+
+                            local icon = Instance.new("ImageLabel", label)
+                            icon.Size = UDim2.new(0, 35, 0, 35) -- Set the width and height for the icon (normal size)
+                            icon.Position = UDim2.new(0.49, 0, 0.0125, 0) -- Move the icon 70% above the text
+                            icon.AnchorPoint = Vector2.new(0.5, 0.5) -- Center the icon around its center point
+                            icon.BackgroundTransparency = 1
+                            if entityName == "ZERO" then
+                                icon.Image = "rbxassetid://14242231316" -- Set the icon image for ZERO
+                            else
+                                icon.Image = "rbxassetid://13176863551" -- Set the icon image for crawlers
+                            end
+                            icon.ZIndex = 2 -- Set a higher ZIndex for the icon to render on top of other parts
 
                             espLabels[entity] = label
                         end
@@ -209,6 +235,7 @@ MiscSection:NewButton("Build Radio", "Require Radio Parts", function()
         local buildPrompt = workspace.Objective.RadioPrim.Prim.BuildPrompt
         if buildPrompt then
             for i = 1, 3 do
+                wait(0.15)
                 fireproximityprompt(buildPrompt)
                 wait(0.1) -- Adjust this wait time (in seconds) if necessary to control the speed of the prompts.
             end
@@ -231,6 +258,26 @@ end)
 -- Create a toggle button for day/night in Misc tab
 MiscSection:NewToggle("Toggle Day/Night", "Toggle between day and night", function(state)
     workspace.GameSetting.NightTime.Value = not state
+end)
+
+-- Instant Prompt Toggle
+local instantPromptEnabled = false
+local instantPromptConnection -- Variable to store the connection
+
+MiscSection:NewToggle("Instant Prompt", "Toggle to instantly fire proximity prompts", function(state)
+    instantPromptEnabled = state
+    if instantPromptEnabled then
+        instantPromptConnection = game:GetService("ProximityPromptService").PromptButtonHoldBegan:Connect(function(prompt)
+            if instantPromptEnabled then
+                fireproximityprompt(prompt)
+            end
+        end)
+    else
+        -- If the toggle is disabled, disconnect the connection if it exists
+        if instantPromptConnection then
+            instantPromptConnection:Disconnect()
+        end
+    end
 end)
 
 local function onKeyPressed(key, damageMultiplier)
@@ -262,18 +309,20 @@ local function handleCrawlerDamageMultiplier(value)
     if crawlerDamageMultiplier ~= value then
         crawlerDamageMultiplier = value
 
-        -- Update the number of connections based on the crawlerDamageMultiplier value
-        local currentConnections = #connectionsCrawlerMultiplier
-        if currentConnections < crawlerDamageMultiplier then
-            for i = currentConnections + 1, crawlerDamageMultiplier do
-                connectionsCrawlerMultiplier[i] = game.Players.LocalPlayer:GetMouse().KeyDown:Connect(function(key)
-                    onKeyPressed(key, crawlerDamageMultiplier)
-                end)
-            end
-        elseif currentConnections > crawlerDamageMultiplier then
-            for i = currentConnections, crawlerDamageMultiplier + 1, -1 do
-                connectionsCrawlerMultiplier[i]:Disconnect()
-                connectionsCrawlerMultiplier[i] = nil
+        if autoKillEnabled then
+            -- Update the number of connections based on the crawlerDamageMultiplier value
+            local currentConnections = #connectionsCrawlerMultiplier
+            if currentConnections < crawlerDamageMultiplier then
+                for i = currentConnections + 1, crawlerDamageMultiplier do
+                    connectionsCrawlerMultiplier[i] = game.Players.LocalPlayer:GetMouse().KeyDown:Connect(function(key)
+                        onKeyPressed(key, crawlerDamageMultiplier)
+                    end)
+                end
+            elseif currentConnections > crawlerDamageMultiplier then
+                for i = currentConnections, crawlerDamageMultiplier + 1, -1 do
+                    connectionsCrawlerMultiplier[i]:Disconnect()
+                    connectionsCrawlerMultiplier[i] = nil
+                end
             end
         end
     end
@@ -305,13 +354,13 @@ local function autoKillCrawlers(damageMultiplier)
     local function killCrawlers(targetPosition)
         char:SetPrimaryPartCFrame(CFrame.new(targetPosition))
 
-        wait(0.1) -- Wait for a short duration before triggering the hit
+        wait(0.1)
         for i = 1, damageMultiplier do
             onKeyPressed("g", damageMultiplier)
             wait() -- Adjust this wait time (in seconds) if necessary to control the speed of the hits.
         end
 
-        wait(0.22) -- Wait for a short duration before teleporting back
+        wait(0.2)
         char:SetPrimaryPartCFrame(origPos)
     end
 
@@ -335,14 +384,13 @@ local function autoKillCrawlers(damageMultiplier)
     end
 
     -- Call the functions to kill crawlers and "ZERO"
-    killRegularCrawlers()
-    killZero() -- Check and kill "ZERO" entity if it exists
+    if #crawlerNames > 0 then
+        killRegularCrawlers()
+    end
+    if zeroEntity then
+        killZero() -- Check and kill "ZERO" entity if it exists
+    end
 end
-
--- Create a slider for Crawler Damage Multiplier in Misc tab
-local DamageMultiplierSlider = MiscSection:NewSlider("Auto Kill (DM)", "Set the damage multiplier for auto-killing crawlers", 30, 1, function(value)
-    handleCrawlerDamageMultiplier(value)
-end)
 
 -- Auto Kill Crawlers toggle (This will also serve as the "Enable Damage Multiplier (G)" toggle)
 local autoKillEnabled = false
@@ -351,8 +399,14 @@ MiscSection:NewToggle("Auto Kill Crawlers/ZERO", "Toggle to automatically kill c
     if autoKillEnabled then
         while autoKillEnabled do
             autoKillCrawlers(crawlerDamageMultiplier) -- Pass the damage multiplier to the function
-            wait(1) -- Adjust the interval (in seconds) between killing crawlers
+            wait(3) -- Adjust the interval (in seconds) between killing crawlers
         end
+    else
+        -- When autoKillEnabled is disabled, disconnect the "g" button event with the damage multiplier
+        for _, connection in ipairs(connectionsCrawlerMultiplier) do
+            connection:Disconnect()
+        end
+        connectionsCrawlerMultiplier = {}
     end
 end)
 
@@ -405,6 +459,11 @@ local function toggleDamageMultiplier(state)
     end
 end
 
+-- Create a slider for Crawler Damage Multiplier in Misc tab
+local DamageMultiplierSlider = DamageMultiplierSection:NewSlider("Auto Kill (DM)", "Set the damage multiplier for auto-killing crawlers", 30, 1, function(value)
+    handleCrawlerDamageMultiplier(value)
+end)
+
 -- Create a slider for Damage Multiplier in Misc tab
 DamageMultiplierSection:NewSlider("Damage Multiplier", "Set the damage multiplier for hitting", 30, 1, function(value)
     handleDamageMultiplier(value)
@@ -426,4 +485,8 @@ end)
 
 SettingSection:NewSlider("Max Zoom Distance", "Set the damage multiplier for hitting", 50, 3, function(Zoom)
     game:GetService("Players").LocalPlayer.CameraMaxZoomDistance = Zoom
+end)
+
+SettingSection:NewButton("Infinite yield", "Run Infinite yield script, doesn't work for victory", function()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
 end)
