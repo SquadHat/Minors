@@ -229,7 +229,7 @@ MiscSection:NewButton("Build Radio", "Require Radio Parts", function()
         char:SetPrimaryPartCFrame(CFrame.new(radioTable.Position))
 
         -- Wait for a short duration before triggering the prompt
-        wait(0.1)
+        wait(0.15)
 
         -- Trigger the proximity prompt at the radioTable position for 3 times
         local buildPrompt = workspace.Objective.RadioPrim.Prim.BuildPrompt
@@ -359,8 +359,7 @@ local function autoKillCrawlers(damageMultiplier)
             onKeyPressed("g", damageMultiplier)
             wait() -- Adjust this wait time (in seconds) if necessary to control the speed of the hits.
         end
-
-        wait(0.2)
+        wait(0.1)
         char:SetPrimaryPartCFrame(origPos)
     end
 
