@@ -90,6 +90,134 @@ MainSection2:NewButton("Teleport to Selected Item", "Teleport to the selected it
         end
     end)
 
+-- Create a Section for MainSection3
+local MainSection3 = MainTab:NewSection("Functionality")
+MainSection3:NewLabel("For damage multiplier you need pipe")
+
+local function onKeyPressed2(key, damageMultiplier)
+    if key == "g" then
+        local player = game.Players.LocalPlayer
+        local args = {
+            [1] = "UseItem",
+            [2] = workspace:WaitForChild(player.Name)
+        }
+
+        for i = 1, damageMultiplier do
+            game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PrimaryEvent"):FireServer(unpack(args))
+            wait() -- Adjust this wait time (in seconds) if necessary to control the speed of the hits.
+        end
+    end
+end
+
+-- Crawler damage multiplier variables
+local crawlerDamageMultiplier = 1
+local connectionsCrawlerMultiplier = {}
+
+-- Function to handle the Crawler Damage Multiplier change
+local function handleCrawlerDamageMultiplier(value)
+    if crawlerDamageMultiplier ~= value then
+        crawlerDamageMultiplier = value
+
+        if autoKillEnabled then
+            -- Update the number of connections based on the crawlerDamageMultiplier value
+            local currentConnections = #connectionsCrawlerMultiplier
+            if currentConnections < crawlerDamageMultiplier then
+                for i = currentConnections + 1, crawlerDamageMultiplier do
+                    connectionsCrawlerMultiplier[i] = game.Players.LocalPlayer:GetMouse().KeyDown:Connect(function(key)
+                        onKeyPressed2(key, crawlerDamageMultiplier)
+                    end)
+                end
+            elseif currentConnections > crawlerDamageMultiplier then
+                for i = currentConnections, crawlerDamageMultiplier + 1, -1 do
+                    connectionsCrawlerMultiplier[i]:Disconnect()
+                    connectionsCrawlerMultiplier[i] = nil
+                end
+            end
+        end
+    end
+end
+
+-- Function to auto-kill crawlers with the given damage multiplier
+local function autoKillCrawlers(damageMultiplier)
+    local crawlerNames = {
+        "Crawler",
+        "DreadCrawler",
+        "Arachnicrawler",
+        "Wretch",
+        "ExoCrawler",
+    }
+
+    local zeroEntity = workspace.Entities2:FindFirstChild("ZERO")
+
+    local player = game.Players.LocalPlayer
+    local char = player.Character
+    local humanoid = char and char:FindFirstChild("Humanoid")
+    if not humanoid or humanoid.Health <= 0 then
+        return
+    end
+
+    -- Store the original position before teleporting
+    local origPos = char.HumanoidRootPart.CFrame
+
+    -- Function to kill crawlers at the target position
+    local function killCrawlers(targetPosition)
+        char:SetPrimaryPartCFrame(CFrame.new(targetPosition))
+        onKeyPressed2("g", damageMultiplier) -- Apply damage multiplier directly
+        wait(0.14)
+        char:SetPrimaryPartCFrame(origPos)
+    end
+
+    -- Function to handle killing the "ZERO" entity
+    local function killZero()
+        if zeroEntity and zeroEntity:FindFirstChild("UpperTorso") then
+            local targetPosition = zeroEntity.UpperTorso.Position
+            killCrawlers(targetPosition)
+        end
+    end
+
+    -- Function to handle killing the regular crawlers
+    local function killRegularCrawlers()
+        for _, crawlerName in ipairs(crawlerNames) do
+            local crawler = game.workspace.Entities:FindFirstChild(crawlerName)
+            if crawler and crawler:FindFirstChild("UpperTorso") then
+                local targetPosition = crawler.UpperTorso.Position
+                killCrawlers(targetPosition)
+            end
+        end
+    end
+
+    -- Call the functions to kill crawlers and "ZERO"
+    if #crawlerNames > 0 then
+        killRegularCrawlers()
+    end
+    if zeroEntity then
+        killZero() -- Check and kill "ZERO" entity if it exists
+    end
+end
+
+-- Create a slider for Crawler Damage Multiplier in Misc tab
+MainSection3:NewSlider("Auto Kill (DM)", "Set the damage multiplier for auto-killing crawlers", 30, 1, function(value)
+    handleCrawlerDamageMultiplier(value)
+end)
+
+-- Auto Kill Crawlers toggle (This will also serve as the "Enable Damage Multiplier (G)" toggle)
+local autoKillEnabled = false
+MainSection3:NewToggle("Auto Kill Crawlers/ZERO", "Toggle to automatically kill crawlers and zero", function(state)
+    autoKillEnabled = state
+    if autoKillEnabled then
+        while autoKillEnabled do
+            autoKillCrawlers(crawlerDamageMultiplier) -- Pass the damage multiplier to the function
+            wait(3.5) -- Adjust the interval (in seconds) between killing crawlers
+        end
+    else
+        -- When autoKillEnabled is disabled, disconnect the "g" button event with the damage multiplier
+        for _, connection in ipairs(connectionsCrawlerMultiplier) do
+            connection:Disconnect()
+        end
+        connectionsCrawlerMultiplier = {}
+    end
+end)
+
 -- Create a new Kavo UI tab for ESP
 local EspTab = Window:NewTab("ESP")
 local EspSection = EspTab:NewSection("Crawlers")
@@ -300,125 +428,6 @@ local function onKeyPressed(key, damageMultiplier)
     end
 end
 
-local function onKeyPressed2(key, damageMultiplier)
-    if key == "g" then
-        local player = game.Players.LocalPlayer
-        local args = {
-            [1] = "UseItem",
-            [2] = workspace:WaitForChild(player.Name)
-        }
-
-        for i = 1, damageMultiplier do
-            game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PrimaryEvent"):FireServer(unpack(args))
-            wait() -- Adjust this wait time (in seconds) if necessary to control the speed of the hits.
-        end
-    end
-end
-
--- Crawler damage multiplier variables
-local crawlerDamageMultiplier = 1
-local connectionsCrawlerMultiplier = {}
-
--- Function to handle the Crawler Damage Multiplier change
-local function handleCrawlerDamageMultiplier(value)
-    if crawlerDamageMultiplier ~= value then
-        crawlerDamageMultiplier = value
-
-        if autoKillEnabled then
-            -- Update the number of connections based on the crawlerDamageMultiplier value
-            local currentConnections = #connectionsCrawlerMultiplier
-            if currentConnections < crawlerDamageMultiplier then
-                for i = currentConnections + 1, crawlerDamageMultiplier do
-                    connectionsCrawlerMultiplier[i] = game.Players.LocalPlayer:GetMouse().KeyDown:Connect(function(key)
-                        onKeyPressed2(key, crawlerDamageMultiplier)
-                    end)
-                end
-            elseif currentConnections > crawlerDamageMultiplier then
-                for i = currentConnections, crawlerDamageMultiplier + 1, -1 do
-                    connectionsCrawlerMultiplier[i]:Disconnect()
-                    connectionsCrawlerMultiplier[i] = nil
-                end
-            end
-        end
-    end
-end
-
--- Function to auto-kill crawlers with the given damage multiplier
-local function autoKillCrawlers(damageMultiplier)
-    local crawlerNames = {
-        "Crawler",
-        "DreadCrawler",
-        "Arachnicrawler",
-        "Wretch",
-        "ExoCrawler",
-    }
-
-    local zeroEntity = workspace.Entities2:FindFirstChild("ZERO")
-
-    local player = game.Players.LocalPlayer
-    local char = player.Character
-    local humanoid = char and char:FindFirstChild("Humanoid")
-    if not humanoid or humanoid.Health <= 0 then
-        return
-    end
-
-    -- Store the original position before teleporting
-    local origPos = char.HumanoidRootPart.CFrame
-
-    -- Function to kill crawlers at the target position
-    local function killCrawlers(targetPosition)
-        char:SetPrimaryPartCFrame(CFrame.new(targetPosition))
-        onKeyPressed2("g", damageMultiplier) -- Apply damage multiplier directly
-        wait(0.25)
-        char:SetPrimaryPartCFrame(origPos)
-    end
-
-    -- Function to handle killing the "ZERO" entity
-    local function killZero()
-        if zeroEntity and zeroEntity:FindFirstChild("UpperTorso") then
-            local targetPosition = zeroEntity.UpperTorso.Position
-            killCrawlers(targetPosition)
-        end
-    end
-
-    -- Function to handle killing the regular crawlers
-    local function killRegularCrawlers()
-        for _, crawlerName in ipairs(crawlerNames) do
-            local crawler = game.workspace.Entities:FindFirstChild(crawlerName)
-            if crawler and crawler:FindFirstChild("UpperTorso") then
-                local targetPosition = crawler.UpperTorso.Position
-                killCrawlers(targetPosition)
-            end
-        end
-    end
-
-    -- Call the functions to kill crawlers and "ZERO"
-    if #crawlerNames > 0 then
-        killRegularCrawlers()
-    end
-    if zeroEntity then
-        killZero() -- Check and kill "ZERO" entity if it exists
-    end
-end
-
--- Auto Kill Crawlers toggle (This will also serve as the "Enable Damage Multiplier (G)" toggle)
-local autoKillEnabled = false
-MiscSection:NewToggle("Auto Kill Crawlers/ZERO", "Toggle to automatically kill crawlers and zero", function(state)
-    autoKillEnabled = state
-    if autoKillEnabled then
-        while autoKillEnabled do
-            autoKillCrawlers(crawlerDamageMultiplier) -- Pass the damage multiplier to the function
-            wait(4) -- Adjust the interval (in seconds) between killing crawlers
-        end
-    else
-        -- When autoKillEnabled is disabled, disconnect the "g" button event with the damage multiplier
-        for _, connection in ipairs(connectionsCrawlerMultiplier) do
-            connection:Disconnect()
-        end
-        connectionsCrawlerMultiplier = {}
-    end
-end)
-
 -- Create a new section for Damage Multiplier in Misc tab
 local DamageMultiplierSection = MiscTab:NewSection("Damage Multiplier")
 DamageMultiplierSection:NewLabel("You need pipe for this")
@@ -467,11 +476,6 @@ local function toggleDamageMultiplier(state)
         connectionsMultiplier = {}
     end
 end
-
--- Create a slider for Crawler Damage Multiplier in Misc tab
-local DamageMultiplierSlider = DamageMultiplierSection:NewSlider("Auto Kill (DM)", "Set the damage multiplier for auto-killing crawlers", 30, 1, function(value)
-    handleCrawlerDamageMultiplier(value)
-end)
 
 -- Create a slider for Damage Multiplier in Misc tab
 DamageMultiplierSection:NewSlider("Damage Multiplier", "Set the damage multiplier for hitting", 30, 1, function(value)
