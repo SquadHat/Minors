@@ -300,6 +300,21 @@ local function onKeyPressed(key, damageMultiplier)
     end
 end
 
+local function onKeyPressed2(key, damageMultiplier)
+    if key == "g" then
+        local player = game.Players.LocalPlayer
+        local args = {
+            [1] = "UseItem",
+            [2] = workspace:WaitForChild(player.Name)
+        }
+
+        for i = 1, damageMultiplier do
+            game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PrimaryEvent"):FireServer(unpack(args))
+            wait() -- Adjust this wait time (in seconds) if necessary to control the speed of the hits.
+        end
+    end
+end
+
 -- Crawler damage multiplier variables
 local crawlerDamageMultiplier = 1
 local connectionsCrawlerMultiplier = {}
@@ -315,7 +330,7 @@ local function handleCrawlerDamageMultiplier(value)
             if currentConnections < crawlerDamageMultiplier then
                 for i = currentConnections + 1, crawlerDamageMultiplier do
                     connectionsCrawlerMultiplier[i] = game.Players.LocalPlayer:GetMouse().KeyDown:Connect(function(key)
-                        onKeyPressed(key, crawlerDamageMultiplier)
+                        onKeyPressed2(key, crawlerDamageMultiplier)
                     end)
                 end
             elseif currentConnections > crawlerDamageMultiplier then
@@ -353,13 +368,8 @@ local function autoKillCrawlers(damageMultiplier)
     -- Function to kill crawlers at the target position
     local function killCrawlers(targetPosition)
         char:SetPrimaryPartCFrame(CFrame.new(targetPosition))
-
-        wait(0.1)
-        for i = 1, damageMultiplier do
-            onKeyPressed("g", damageMultiplier)
-            wait() -- Adjust this wait time (in seconds) if necessary to control the speed of the hits.
-        end
-        wait(0.01)
+        onKeyPressed2("g", damageMultiplier) -- Apply damage multiplier directly
+        wait(0.25)
         char:SetPrimaryPartCFrame(origPos)
     end
 
