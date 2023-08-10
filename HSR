@@ -163,7 +163,7 @@ local function autoKillCrawlers(damageMultiplier)
     local function killCrawlers(targetPosition)
         char:SetPrimaryPartCFrame(CFrame.new(targetPosition))
         onKeyPressed2("g", damageMultiplier) -- Apply damage multiplier directly
-        wait(0.14)
+        wait(0.1)
         char:SetPrimaryPartCFrame(origPos)
     end
 
@@ -207,7 +207,7 @@ MainSection3:NewToggle("Auto Kill Crawlers/ZERO", "Toggle to automatically kill 
     if autoKillEnabled then
         while autoKillEnabled do
             autoKillCrawlers(crawlerDamageMultiplier) -- Pass the damage multiplier to the function
-            wait(3.5) -- Adjust the interval (in seconds) between killing crawlers
+            wait(1.5) -- Adjust the interval (in seconds) between killing crawlers
         end
     else
         -- When autoKillEnabled is disabled, disconnect the "g" button event with the damage multiplier
