@@ -1,6 +1,6 @@
 -- Load Kavo UI library
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Library.CreateLib("Hunting Season REBIRTH | V0.0.2", "DarkTheme")
+local Window = Library.CreateLib("Hunting Season REBIRTH | V0.0.3", "DarkTheme")
 
 -- Function to teleport to an item and trigger a fireproximity prompt
 local function teleportToItem(itemPart)
