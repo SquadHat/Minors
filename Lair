@@ -1,0 +1,217 @@
+--// Function \\--
+
+local DamageMultiply = 30 -- 30 is Recommended, 50 works better, idk your choice
+
+--// Idk a code \\--
+
+local player = game.Players.LocalPlayer
+local char = player.Character
+
+while not char or not char:FindFirstChild("HumanoidRootPart") do
+    wait(1)
+    char = player.Character
+end
+
+if char and char:FindFirstChild("HumanoidRootPart") then
+    origPos = char.HumanoidRootPart.CFrame
+end
+
+while true do
+    wait(0.1)  -- Wait for the game to load
+    if workspace.GameSetting.Countdown.Value == 110 then
+        break
+    end
+end
+
+while true do
+    wait(1)  -- Wait for player's character to be available
+    char = player.Character
+    if char and char:FindFirstChild("Humanoid") then
+        origPos = char.HumanoidRootPart.CFrame
+        itemPart = workspace.Pickups.PipePickup.Pickup
+        break
+    end
+end
+
+local itemPart = workspace.Pickups.PipePickup.Pickup
+
+while true do
+    char = player.Character
+    if char and char:FindFirstChild("Humanoid") then
+        if itemPart then
+            -- Teleport to the item and pick it up
+            char:SetPrimaryPartCFrame(CFrame.new(itemPart.Position))
+            wait(0.25)
+            char:SetPrimaryPartCFrame(origPos)
+            wait(0.25)
+            itemPart = workspace.Pickups.PipePickup.Pickup
+            
+            -- Fire the proximity prompt on the item
+            local itemPrompt = itemPart:FindFirstChild("PickupPrompt")
+            if itemPrompt then
+                fireproximityprompt(itemPrompt)
+            else
+                warn("Proximity prompt not found!")
+            end
+            
+            -- Check if the player's current weapon value is "Knife"
+            local localPlayerObject = workspace:FindFirstChild(player.Name)
+            if localPlayerObject and localPlayerObject:FindFirstChild("CharacterStats") then
+                local currentWeapon = localPlayerObject.CharacterStats:FindFirstChild("CurrentWeapon")
+                if currentWeapon then
+                    if currentWeapon.Value == "Knife" then
+                        -- Swap weapon to "Pipe"
+                        local args = {
+                            [1] = "Swap"
+                        }
+                        game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PrimaryEvent"):FireServer(unpack(args))
+                        break  -- Exit the loop if the weapon has been changed to "Pipe"
+                    elseif currentWeapon.Value == "Pipe" then
+                        break  -- Exit the loop if the current weapon is already "Pipe"
+                    end
+                end
+
+                local secondaryWeapon = localPlayerObject.CharacterStats:FindFirstChild("SecondaryWeapon")
+                if secondaryWeapon and secondaryWeapon.Value ~= "Pipe" then
+                    -- Teleport to the PipePickup and pick it up until it becomes the secondary weapon
+                    while secondaryWeapon.Value ~= "Pipe" do
+                        char:SetPrimaryPartCFrame(CFrame.new(itemPart.Position))
+                        wait(0.25)
+                        char:SetPrimaryPartCFrame(origPos)
+                        wait(0.25)
+                        itemPart = workspace.Pickups.PipePickup.Pickup
+                        
+                        -- Fire the proximity prompt on the item
+                        local itemPrompt = itemPart:FindFirstChild("PickupPrompt")
+                        if itemPrompt then
+                            fireproximityprompt(itemPrompt)
+                        else
+                            warn("Proximity prompt not found!")
+                        end
+                        
+                        wait(0.25)
+                    end
+                end
+            end
+        else
+            warn("Item part not found!")
+        end
+    else
+        wait(1)  -- Wait for player's character and humanoid to be available
+    end
+end
+local playerFound = false
+
+while not playerFound do
+    local placeId = game.PlaceId
+
+    if placeId == 13179533471 then -- Lair
+        local player = game.Players.LocalPlayer
+
+        if player then
+            if player.Character and player.Character:FindFirstChild("Humanoid") then
+                local character = player.Character
+                local targetPosition = Vector3.new(367, 212, -51)
+                character.HumanoidRootPart.CFrame = CFrame.new(targetPosition)
+                playerFound = true
+            else
+                wait(1)  -- Wait for player to spawn before checking again
+            end
+        else
+            wait(1)  -- Wait for player to spawn before checking again
+        end
+    else
+        warn("This script is not meant for the current place.")
+        break  -- Exit the loop if the place is not correct
+    end
+end
+
+local function onKeyPressed2(key, damageMultiplier)
+    if key == "g" then
+        local player = game.Players.LocalPlayer
+        local args = {
+            [1] = "UseItem",
+            [2] = workspace:WaitForChild(player.Name)
+        }
+
+        for i = 1, damageMultiplier do
+            game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PrimaryEvent"):FireServer(unpack(args))
+            wait() -- Adjust this wait time (in seconds) if necessary to control the speed of the hits.
+        end
+    end
+end
+
+local function autoKillEntities(damageMultiplier)
+    local player = game.Players.LocalPlayer
+    local char = player.Character
+
+    local function isEntityAlive(entity)
+        return entity and entity:FindFirstChild("Humanoid") and entity.Humanoid.Health > 0
+    end
+
+    -- Store the original position before teleporting
+    local origPos = char.HumanoidRootPart.CFrame
+
+    -- Function to kill a specific entity
+    local function killEntity(entity)
+        local targetPosition = entity.UpperTorso.Position
+        char:SetPrimaryPartCFrame(CFrame.new(targetPosition))
+        onKeyPressed2("g", damageMultiplier) -- Apply damage multiplier directly
+        wait(0.01)
+        char:SetPrimaryPartCFrame(origPos)
+    end
+
+    -- Function to handle killing the "ZERO" entity
+    local function killZero()
+        local zeroEntity = workspace.Entities2:FindFirstChild("ZERO")
+        if zeroEntity and zeroEntity:FindFirstChild("Humanoid") and zeroEntity.Humanoid.Health > 0 then
+            killEntity(zeroEntity)
+        end
+    end
+
+    while true do
+        local entityFound = false
+
+        for _, entity in ipairs(game.workspace.Entities:GetChildren()) do
+            if isEntityAlive(entity) then
+                entityFound = true
+                killEntity(entity)
+                wait(1) -- Wait a short time before moving to the next entity
+                break
+            end
+        end
+
+        if not entityFound then
+            break -- Break the loop if no alive entities are found
+        end
+    end
+
+    killZero() -- Check and kill "ZERO" entity if it exists
+end
+
+while true do
+    local entitiesSpawned = false
+
+    for _, entity in ipairs(workspace.Entities:GetChildren()) do
+        if entity:IsA("Model") then
+            entitiesSpawned = true
+            break
+        end
+    end
+
+    if entitiesSpawned then
+        autoKillEntities(DamageMultiply) -- Call the autoKillEntities function with a damage multiplier of 30
+        wait(1) -- Wait before checking again
+    else
+        wait(1) -- Wait if no entities are spawned
+    end
+end
+
+while true do
+    wait(0.1)  -- Wait for the game to load
+    if workspace.GameSetting.Countdown.Value == 415 then
+        warn("Zero Disappeared, Restarting...")
+        workspace.GameSetting.GameEnded.Value = true
+        break
+    end
+end
