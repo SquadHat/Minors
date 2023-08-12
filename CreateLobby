@@ -1,0 +1,57 @@
+wait(12.5) -- 15 is better but waste more time the lower the garbage the higher the waste of time
+local desiredPlaceID = 13130031963
+local currentPlaceID = game.PlaceId
+
+while true do
+    if currentPlaceID == desiredPlaceID then
+        warn("Teleporting")
+
+        local function runRemote(actionName, args)
+            local remote = game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PrimaryEvent")
+            local remoteArgs = { [1] = actionName, unpack(args) }
+            remote:FireServer(unpack(remoteArgs))
+        end
+        -- Create Lobby
+        local createLobbyArgs = {
+            [1] = "CreateLobby",
+            [2] = true
+        }
+        runRemote("CreateLobby", createLobbyArgs)
+        -- Change Friend Lock
+        
+        local changeStatusArgs = {
+            [1] = "ChangeStatus"
+        }
+        runRemote("ChangeStatus", changeStatusArgs)
+        
+        -- Change Map (4 times for lair map)
+        local changeMapArgs = {
+            [1] = "ChangeMap"
+        }
+        wait(0.15)
+        for i = 1, 4 do
+            runRemote("ChangeMap", changeMapArgs)
+        end
+        
+        -- Change Mode (3 Times Hardcore hunt)
+        local changeModeArgs = {
+            [1] = "ChangeMode"
+        }
+        wait(0.15)
+        for i = 1, 3 do
+            runRemote("ChangeMode", changeModeArgs)
+        end
+        wait(0.15)
+        
+        -- Start Lobby
+        local args = {
+            [1] = "StartLobby"
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PrimaryEvent"):FireServer(unpack(args))
+        
+        wait(15)  -- Wait for a minute before running the script again
+    else
+        print("The current place ID does not match the desired place ID.")
+        break  -- Exit the loop if the place is not correct
+    end
+end
