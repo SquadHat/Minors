@@ -1,4 +1,7 @@
-wait(12.5) -- 15 is better but waste more time the lower the garbage the higher the waste of time
+if not game:IsLoaded() then
+   game.Loaded:Wait();
+end
+
 local desiredPlaceID = 13130031963
 local currentPlaceID = game.PlaceId
 
