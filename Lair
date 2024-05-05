@@ -1,8 +1,18 @@
+--// Game \\--
+
+if game.PlaceId ~= 13179533471 then
+    return
+end
+
+if not game:IsLoaded() then
+   game.Loaded:Wait();
+end
+
 --// Function \\--
 
-local DamageMultiply = 30 -- 30 is Recommended, 50 works better, idk your choice
+local DamageMultiply = 30 -- 30 is Recommended (50 works better, as your heart's desired)
 
---// Idk a code \\--
+--// Breakdown \\--
 
 local player = game.Players.LocalPlayer
 local char = player.Character
@@ -18,7 +28,7 @@ end
 
 while true do
     wait(0.1)  -- Wait for the game to load
-    if workspace.GameSetting.Countdown.Value == 110 then
+    if workspace.GameSetting.Countdown.Value == 180 then
         break
     end
 end
