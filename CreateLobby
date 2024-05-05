@@ -1,60 +1,83 @@
+if game.PlaceId ~= 13130031963 then
+    return
+end
+
 if not game:IsLoaded() then
    game.Loaded:Wait();
 end
 
-local desiredPlaceID = 13130031963
-local currentPlaceID = game.PlaceId
+while wait() do
+    local Lobbies = workspace.MenuStats.Lobbies:GetDescendants()
+    local Lobby
 
-while true do
-    if currentPlaceID == desiredPlaceID then
-        warn("Teleporting")
+    -- Create Lobby
+    local args = {
+        [1] = "CreateLobby",
+        [2] = true
+    }
 
-        local function runRemote(actionName, args)
-            local remote = game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PrimaryEvent")
-            local remoteArgs = { [1] = actionName, unpack(args) }
-            remote:FireServer(unpack(remoteArgs))
+    game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PrimaryEvent"):FireServer(unpack(args))
+
+    for _, Wobby in ipairs(Lobbies) do
+        if Wobby:IsA("Folder") and Wobby:FindFirstChild("Owner") and Wobby.Owner.Value == game.Players.LocalPlayer then
+            Lobby = Wobby
+            break
         end
-        -- Create Lobby
-        local createLobbyArgs = {
-            [1] = "CreateLobby",
-            [2] = true
-        }
-        runRemote("CreateLobby", createLobbyArgs)
+    end
+
+    if Lobby then
+        local FriendsOnly = Lobby:FindFirstChild("FriendsOnly")
+
+        local function RunRemote(actionName, args)
+            local Remote = game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PrimaryEvent")
+            local RemoteArgs = { [1] = actionName, unpack(args) }
+            Remote:FireServer(unpack(RemoteArgs))
+        end
+
         -- Change Friend Lock
-        
-        local changeStatusArgs = {
-            [1] = "ChangeStatus"
-        }
-        runRemote("ChangeStatus", changeStatusArgs)
-        
-        -- Change Map (4 times for lair map)
-        local changeMapArgs = {
-            [1] = "ChangeMap"
-        }
-        wait(0.15)
-        for i = 1, 4 do
-            runRemote("ChangeMap", changeMapArgs)
+        while not FriendsOnly or FriendsOnly.Value == false do
+            local ChangeStatusArgs = {
+                [1] = "ChangeStatus"
+            }
+            RunRemote("ChangeStatus", ChangeStatusArgs)
+            wait()
         end
-        
-        -- Change Mode (3 Times Hardcore hunt)
-        local changeModeArgs = {
-            [1] = "ChangeMode"
-        }
-        wait(0.15)
-        for i = 1, 3 do
-            runRemote("ChangeMode", changeModeArgs)
+
+        -- Change Map (until it's Lair)
+        while true do
+            Map = Lobby:FindFirstChild("Map")
+            if Map and Map.Value == "Lair" then
+                break
+            else
+                local ChangeMapArgs = {
+                    [1] = "ChangeMap"
+                }
+                RunRemote("ChangeMap", ChangeMapArgs)
+                wait(0.15)
+            end
         end
-        wait(0.15)
-        
+
+        -- Change Mode (until it's Hardcore Hunt)
+        while true do
+            Mode = Lobby:FindFirstChild("Mode")
+            if Mode and Mode.Value == "HCElim" then
+                break
+            else
+                local ChangeModeArgs = {
+                    [1] = "ChangeMode"
+                }
+                RunRemote("ChangeMode", ChangeModeArgs)
+                wait(0.15)
+            end
+        end
+
         -- Start Lobby
         local args = {
             [1] = "StartLobby"
         }
         game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PrimaryEvent"):FireServer(unpack(args))
-        
-        wait(15)  -- Wait for a minute before running the script again
-    else
-        print("The current place ID does not match the desired place ID.")
-        break  -- Exit the loop if the place is not correct
+        warn("Teleporting")
+
+        wait(15)
     end
 end
