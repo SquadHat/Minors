@@ -306,7 +306,7 @@ end)
 local MiscTab = Window:NewTab("Misc")
 local MiscSection = MiscTab:NewSection("Miscellaneous")
 
-MiscSection:NewButton("Build Radio", "Require Radio Parts", function()
+MiscSection:NewButton("Build Radio", "", function()
     local Character = game.Players.LocalPlayer.Character
     local PositionV = Character.HumanoidRootPart.CFrame
 
@@ -327,7 +327,7 @@ MiscSection:NewButton("Build Radio", "Require Radio Parts", function()
     end
 end)
 
-MiscSection:NewButton("End Game", "Teleport back to lobby and also give you xp without wasting time, doesn't work for victory", function()
+MiscSection:NewButton("End Game", "Teleport back to lobby and also give you xp", function()
     workspace.GameSetting.GameEnded.Value = true
 end)
 
