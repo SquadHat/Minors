@@ -1,25 +1,24 @@
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
 local Window = Library.CreateLib("Hunting Season REBIRTH | V0.0.3", "DarkTheme")
 
-local function teleportToItem(itemPart)
-    local player = game.Players.LocalPlayer
-    local char = player.Character
-    local origPos = char.HumanoidRootPart.CFrame
+local function TPITEM(ITPart)
+    local Character = game.Players.LocalPlayer.Character
+    local PositionV = Character.HumanoidRootPart.CFrame
 
-    char:SetPrimaryPartCFrame(CFrame.new(itemPart.Position))
+    Character:SetPrimaryPartCFrame(CFrame.new(ITPart.Position))
     wait(0.15)
-    char:SetPrimaryPartCFrame(origPos)
+    Character:SetPrimaryPartCFrame(PositionV)
 
-    local itemPrompt = itemPart:FindFirstChild("PickupPrompt")
-    if itemPrompt then
-        fireproximityprompt(itemPrompt)
+    local ItemPrompt = ITPart:FindFirstChild("PickupPrompt")
+    if ItemPrompt then
+        fireproximityprompt(ItemPrompt)
     end
 end
 
 local MainTab = Window:NewTab("Main")
 local MainSection = MainTab:NewSection("Weapons")
 
-local weapons = {
+local Weapons = {
     "Axe",
     "Pipe",
     "Crowbar",
@@ -29,95 +28,94 @@ local weapons = {
     "Volt",
 }
 
-local selectedWeapon = weapons[1]
-MainSection:NewDropdown("Select Weapon", "Choose a weapon to teleport to", weapons, function(weaponName)
-    selectedWeapon = weaponName
+local SelectedWeapon = Weapons[1]
+MainSection:NewDropdown("Select Weapon", "", Weapons, function(weaponName)
+    SelectedWeapon = weaponName
 end)
 
-MainSection:NewButton("Teleport to Selected Weapon", "Teleport to the selected weapon and pick it up", function()
-    local weaponPart = workspace.Pickups[selectedWeapon .. "Pickup"].Pickup
-    if weaponPart then
-        teleportToItem(weaponPart)
+MainSection:NewButton("Teleport to Selected Weapon", "", function()
+    local WeaponPickUp = workspace.Pickups[SelectedWeapon .. "Pickup"].Pickup
+    if WeaponPickUp then
+        TPITEM(WeaponPickUp)
     else
-        warn("Weapon not found:", selectedWeapon)
+        return
     end
 end)
 
 local MainSection2 = MainTab:NewSection("Items")
 
-local items = {
+local Items = {
     "Medkit",
     "Cola",
     "Battery",
     "Radio Parts",
 }
 
-local itemPaths = {
+local ItemsP = {
     ["Medkit"] = "MedkitPickup",
     ["Cola"] = "ColaPickup",
     ["Battery"] = "BatteryPickup",
     ["Radio Parts"] = "ObjPickup",
 }
 
-local selectedItem = items[1]
-MainSection2:NewDropdown("Select Item", "Choose an item to teleport to", items, function(itemName)
-    selectedItem = itemName
+local SelectedItem = Items[1]
+MainSection2:NewDropdown("Select Item", "Choose an item to teleport to", Items, function(itemName)
+    SelectedItem = itemName
 end)
 
-MainSection2:NewButton("Teleport to Selected Item", "Teleport to the selected item and pick it up", function()
-    local itemPart = workspace.Pickups[itemPaths[selectedItem]].Pickup
-    if itemPart then
-        teleportToItem(itemPart)
+MainSection2:NewButton("Teleport to Selected Item", "", function()
+    local ITPart = workspace.Pickups[ItemsP[SelectedItem]].Pickup
+    if ITPart then
+        TPITEM(ITPart)
     else
-        warn("Item not found:", selectedItem)
+        return
     end
 end)
 
 local MainSection3 = MainTab:NewSection("Functionality")
-MainSection3:NewLabel("For damage multiplier you need pipe")
+MainSection3:NewLabel("Pipe required for dmg multiplier")
 
-local function onKeyPressed2(key, damageMultiplier)
+local function KeyX(key, DMGMulti)
     if key == "g" then
-        local player = game.Players.LocalPlayer
         local args = {
             [1] = "UseItem",
-            [2] = workspace:WaitForChild(player.Name)
+            [2] = workspace:WaitForChild(game.Players.LocalPlayer.Name)
         }
 
-        for i = 1, damageMultiplier do
+        for i = 1, DMGMulti do
             game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PrimaryEvent"):FireServer(unpack(args))
             wait()
         end
     end
 end
 
-local crawlerDamageMultiplier = 1
-local connectionsCrawlerMultiplier = {}
+local CrawlerDMG = 1
+local CrawlerConnection = {}
 
-local function handleCrawlerDamageMultiplier(value)
-    if crawlerDamageMultiplier ~= value then
-        crawlerDamageMultiplier = value
+local function CrawlerDMGMulti(value)
+    if CrawlerDMG ~= value then
+        CrawlerDMG = value
 
-        if autoKillEnabled then
-            local currentConnections = #connectionsCrawlerMultiplier
-            if currentConnections < crawlerDamageMultiplier then
-                for i = currentConnections + 1, crawlerDamageMultiplier do
-                    connectionsCrawlerMultiplier[i] = game.Players.LocalPlayer:GetMouse().KeyDown:Connect(function(key)
-                        onKeyPressed2(key, crawlerDamageMultiplier)
+        if ATK then
+            local CConnection = #CrawlerConnection
+            if CConnection < CrawlerDMG then
+                for i = CConnection + 1, CrawlerDMG do
+                    CrawlerConnection[i] = game.Players.LocalPlayer:GetMouse().KeyDown:Connect(function(key)
+                        KeyX(key, CrawlerDMG)
                     end)
                 end
-            elseif currentConnections > crawlerDamageMultiplier then
-                for i = currentConnections, crawlerDamageMultiplier + 1, -1 do
-                    connectionsCrawlerMultiplier[i]:Disconnect()
-                    connectionsCrawlerMultiplier[i] = nil
+            elseif CConnection > CrawlerDMG then
+                for i = CConnection, CrawlerDMG + 1, -1 do
+                    CrawlerConnection[i]:Disconnect()
+                    CrawlerConnection[i] = nil
                 end
             end
         end
     end
 end
 
-local function autoKillCrawlers(damageMultiplier)
-    local crawlerNames = {
+local function ATKCrawlers(DMGMulti)
+    local Crawlers = {
         "Crawler",
         "DreadCrawler",
         "Arachnicrawler",
@@ -125,80 +123,81 @@ local function autoKillCrawlers(damageMultiplier)
         "ExoCrawler",
     }
 
-    local zeroEntity = workspace.Entities2:FindFirstChild("ZERO")
+    local ZeroX = game.workspace.Entities2:FindFirstChild("ZERO")
 
-    local player = game.Players.LocalPlayer
-    local char = player.Character
-    local humanoid = char and char:FindFirstChild("Humanoid")
-    if not humanoid or humanoid.Health <= 0 then
+    local Character = game.Players.LocalPlayer.Character
+    local Humanoid = Character and Character:FindFirstChild("Humanoid")
+
+    if not Humanoid or Humanoid.Health <= 0 then
         return
     end
 
-    local origPos = char.HumanoidRootPart.CFrame
+    local PositionV = Character.HumanoidRootPart.CFrame
 
-    local function killCrawlers(targetPosition)
-        char:SetPrimaryPartCFrame(CFrame.new(targetPosition))
-        onKeyPressed2("g", damageMultiplier)
+    local function KCrawlers(TPosition)
+        Character:SetPrimaryPartCFrame(CFrame.new(TPosition))
+        KeyX("g", DMGMulti)
         wait(0.1)
-        char:SetPrimaryPartCFrame(origPos)
+        Character:SetPrimaryPartCFrame(PositionV)
     end
 
-    local function killZero()
-        if zeroEntity and zeroEntity:FindFirstChild("UpperTorso") then
-            local targetPosition = zeroEntity.UpperTorso.Position
-            killCrawlers(targetPosition)
+    local function KZero()
+        if ZeroX and ZeroX:FindFirstChild("UpperTorso") then
+            local TPosition = ZeroX.UpperTorso.Position
+            KCrawlers(TPosition)
         end
     end
 
-    local function killRegularCrawlers()
-        for _, crawlerName in ipairs(crawlerNames) do
-            local crawler = game.workspace.Entities:FindFirstChild(crawlerName)
-            if crawler and crawler:FindFirstChild("UpperTorso") then
-                local targetPosition = crawler.UpperTorso.Position
-                killCrawlers(targetPosition)
+    local function KRCrawlers()
+        for _, CrawlerN in ipairs(Crawlers) do
+            local Crawler = game.workspace.Entities:FindFirstChild(CrawlerN)
+            if Crawler and Crawler:FindFirstChild("UpperTorso") then
+                local TPosition = Crawler.UpperTorso.Position
+                KCrawlers(TPosition)
             end
         end
     end
 
-    if #crawlerNames > 0 then
-        killRegularCrawlers()
+    if #Crawlers > 0 then
+        KRCrawlers()
     end
-    if zeroEntity then
-        killZero()
+    if ZeroX then
+        KZero()
     end
 end
 
-MainSection3:NewSlider("Auto Kill (DM)", "Set the damage multiplier for auto-killing crawlers", 30, 1, function(value)
-    handleCrawlerDamageMultiplier(value)
+MainSection3:NewSlider("Auto Kill (DMG)", "", 30, 1, function(value)
+    CrawlerDMGMulti(value)
 end)
 
-local autoKillEnabled = false
-MainSection3:NewToggle("Auto Kill Crawlers/ZERO", "Toggle to automatically kill crawlers and zero", function(state)
-    autoKillEnabled = state
-    if autoKillEnabled then
-        while autoKillEnabled do
-            autoKillCrawlers(crawlerDamageMultiplier)
+local ATK = false
+
+MainSection3:NewToggle("Auto Kill Crawlers/ZERO", "", function(state)
+    ATK = state
+    if ATK then
+        while ATK do
+            ATKCrawlers(CrawlerDMG)
             wait(1.5)
         end
     else
-        for _, connection in ipairs(connectionsCrawlerMultiplier) do
-            connection:Disconnect()
+        for _, Connect in ipairs(CrawlerConnection) do
+            Connect:Disconnect()
         end
-        connectionsCrawlerMultiplier = {}
+        CrawlerConnection = {}
     end
 end)
 
 local EspTab = Window:NewTab("ESP")
 local EspSection = EspTab:NewSection("Crawlers")
 
-local espEnabled = false
-local espLabels = {}
+local ESPV = false
+local ESPL = {}
 
-local function createEspLabels()
-    if espEnabled then
-        local entities = game.workspace.Entities:GetChildren()
-        entities[#entities + 1] = workspace.Entities2:FindFirstChild("ZERO")
-        for entityName, color in pairs({
+local function ESPCRAWLERS()
+    if ESPV then
+        local Entities = game.workspace.Entities:GetChildren()
+        Entities[#Entities + 1] = game.workspace.Entities2:FindFirstChild("ZERO")
+        for EntityN, color in pairs({
             ["Crawler"] = Color3.new(1, 0, 0),
             ["DreadCrawler"] = Color3.new(0.39, 0, 0),
             ["Arachnicrawler"] = Color3.new(1, 1, 1),
@@ -206,44 +205,44 @@ local function createEspLabels()
             ["ExoCrawler"] = Color3.new(1, 0.65, 0),
             ["ZERO"] = Color3.fromRGB(220, 20, 60),
         }) do
-            for _, entity in ipairs(entities) do
-            if entity.Name == entityName and entity:FindFirstChild("UpperTorso") then
-                local label = Instance.new("BillboardGui", entity.UpperTorso)
-                label.Size = UDim2.new(0, 100, 0, 50)
-                label.StudsOffset = Vector3.new(0, 7, 0)
-                label.AlwaysOnTop = true
+            for _, Entity in ipairs(Entities) do
+            if Entity.Name == EntityN and Entity:FindFirstChild("UpperTorso") then
+                local VX = Instance.new("BillboardGui", Entity.UpperTorso)
+                VX.Size = UDim2.new(0, 100, 0, 50)
+                VX.StudsOffset = Vector3.new(0, 7, 0)
+                VX.AlwaysOnTop = true
 
-                local textLabel = Instance.new("TextLabel", label)
-                textLabel.Size = UDim2.new(1, 0, 0.25, 0)
-                textLabel.Position = UDim2.new(0, 0, 0.5, 0)
-                textLabel.BackgroundTransparency = 1
-                textLabel.Text = entityName
-                textLabel.TextColor3 = color
-                textLabel.TextSize = 20
-                textLabel.Font = Enum.Font.SourceSansBold
+                local VV = Instance.new("TextLabel", VX)
+                VV.Size = UDim2.new(1, 0, 0.25, 0)
+                VV.Position = UDim2.new(0, 0, 0.5, 0)
+                VV.BackgroundTransparency = 1
+                VV.Text = EntityN
+                VV.TextColor3 = color
+                VV.TextSize = 20
+                VV.Font = 'SourceSansBold'
 
-                local icon = Instance.new("ImageLabel", label)
-                icon.Size = UDim2.new(0, 35, 0, 35)
-                icon.Position = UDim2.new(0.49, 0, 0.0125, 0)
-                icon.AnchorPoint = Vector2.new(0.5, 0.5)
-                icon.BackgroundTransparency = 1
-                if entityName == "ZERO" then
-                    icon.Image = "rbxassetid://14242231316"
+                local IV = Instance.new("ImageLabel", VX)
+                IV.Size = UDim2.new(0, 35, 0, 35)
+                IV.Position = UDim2.new(0.49, 0, 0.0125, 0)
+                IV.AnchorPoint = Vector2.new(0.5, 0.5)
+                IV.BackgroundTransparency = 1
+                if EntityN == "ZERO" then
+                    IV.Image = "rbxassetid://14242231316"
                 else
-                    icon.Image = "rbxassetid://13176863551"
+                    IV.Image = "rbxassetid://13176863551"
                 end
-                icon.ZIndex = 2
+                IV.ZIndex = 2
 
-                espLabels[entity] = label
+                ESPL[Entity] = VX
             end
         end
     end
 
-        local function checkAndCreateESP()
-            if espEnabled then
-                local entities = game.workspace.Entities:GetChildren()
-                entities[#entities + 1] = workspace.Entities2:FindFirstChild("ZERO")
-                for entityName, color in pairs({
+        local function VQ()
+            if ESPV then
+                local Entities = game.workspace.Entities:GetChildren()
+                Entities[#Entities + 1] = workspace.Entities2:FindFirstChild("ZERO")
+                for EntityN, color in pairs({
                     ["Crawler"] = Color3.new(1, 0, 0),
                     ["DreadCrawler"] = Color3.new(0.39, 0, 0),
                     ["Arachnicrawler"] = Color3.new(1, 1, 1),
@@ -251,86 +250,80 @@ local function createEspLabels()
                     ["ExoCrawler"] = Color3.new(1, 0.65, 0),
                     ["ZERO"] = Color3.fromRGB(220, 20, 60),
                 }) do
-                    for _, entity in ipairs(entities) do
-                        if entity.Name == entityName and entity:FindFirstChild("UpperTorso") and not espLabels[entity] then
-                            local label = Instance.new("BillboardGui", entity.UpperTorso)
-                            label.Size = UDim2.new(0, 100, 0, 50)
-                            label.StudsOffset = Vector3.new(0, 7, 0)
-                            label.AlwaysOnTop = true
+                    for _, Entity in ipairs(Entities) do
+                        if Entity.Name == EntityN and Entity:FindFirstChild("UpperTorso") and not ESPL[Entity] then
+                            local VX = Instance.new("BillboardGui", Entity.UpperTorso)
+                            VX.Size = UDim2.new(0, 100, 0, 50)
+                            VX.StudsOffset = Vector3.new(0, 7, 0)
+                            VX.AlwaysOnTop = true
 
-                            local textLabel = Instance.new("TextLabel", label)
-                            textLabel.Size = UDim2.new(1, 0, 0.25, 0)
-                            textLabel.Position = UDim2.new(0, 0, 0.5, 0)
-                            textLabel.BackgroundTransparency = 1
-                            textLabel.Text = entityName
-                            textLabel.TextColor3 = color
-                            textLabel.TextSize = 20
-                            textLabel.Font = Enum.Font.SourceSansBold
+                            local VV = Instance.new("TextLabel", VX)
+                            VV.Size = UDim2.new(1, 0, 0.25, 0)
+                            VV.Position = UDim2.new(0, 0, 0.5, 0)
+                            VV.BackgroundTransparency = 1
+                            VV.Text = EntityN
+                            VV.TextColor3 = color
+                            VV.TextSize = 20
+                            VV.Font = 'SourceSansBold'
 
-                            local icon = Instance.new("ImageLabel", label)
-                            icon.Size = UDim2.new(0, 35, 0, 35)
-                            icon.Position = UDim2.new(0.49, 0, 0.0125, 0)
-                            icon.AnchorPoint = Vector2.new(0.5, 0.5)
-                            icon.BackgroundTransparency = 1
-                            if entityName == "ZERO" then
-                                icon.Image = "rbxassetid://14242231316"
+                            local IV = Instance.new("ImageLabel", VX)
+                            IV.Size = UDim2.new(0, 35, 0, 35)
+                            IV.Position = UDim2.new(0.49, 0, 0.0125, 0)
+                            IV.AnchorPoint = Vector2.new(0.5, 0.5)
+                            IV.BackgroundTransparency = 1
+                            if EntityN == "ZERO" then
+                                IV.Image = "rbxassetid://14242231316"
                             else
-                                icon.Image = "rbxassetid://13176863551"
+                                IV.Image = "rbxassetid://13176863551"
                             end
-                            icon.ZIndex = 2
+                            IV.ZIndex = 2
 
-                            espLabels[entity] = label
+                            ESPL[Entity] = VX
                         end
                     end
                 end
             end
         end
-
         spawn(function()
-            while espEnabled do
+            while ESPV do
                 wait(1)
-                checkAndCreateESP()
+                VQ()
             end
         end)
     else
-        for entity, label in pairs(espLabels) do
-            label:Destroy()
-            espLabels[entity] = nil
+        for Entity, VX in pairs(ESPL) do
+            VX:Destroy()
+            ESPL[Entity] = nil
         end
     end
 end
 
 EspSection:NewToggle("ESP Crawlers/ZERO", "Toggle ESP for crawlers", function(state)
-    espEnabled = state
-    createEspLabels()
+    ESPV = state
+    ESPCRAWLERS()
 end)
 
 local MiscTab = Window:NewTab("Misc")
 local MiscSection = MiscTab:NewSection("Miscellaneous")
 
 MiscSection:NewButton("Build Radio", "Require Radio Parts", function()
-    local player = game.Players.LocalPlayer
-    local char = player.Character
-    local origPos = char.HumanoidRootPart.CFrame
+    local Character = game.Players.LocalPlayer.Character
+    local PositionV = Character.HumanoidRootPart.CFrame
 
-    local radioTable = workspace.Objective.RadioPrim and workspace.Objective.RadioPrim.Table
-    if radioTable then
-        char:SetPrimaryPartCFrame(CFrame.new(radioTable.Position))
+    local RadioTable = workspace.Objective.RadioPrim and game.workspace.Objective.RadioPrim.Table
+    if RadioTable then
+        Character:SetPrimaryPartCFrame(CFrame.new(RadioTable.Position))
         wait(0.15)
-        local buildPrompt = workspace.Objective.RadioPrim.Prim.BuildPrompt
-        if buildPrompt then
+        local BuildPrompt = workspace.Objective.RadioPrim.Prim.BuildPrompt
+        if BuildPrompt then
             for i = 1, 3 do
                 wait(0.15)
-                fireproximityprompt(buildPrompt)
+                fireproximityprompt(BuildPrompt)
                 wait(0.1)
             end
-        else
-            warn("Build prompt not found.")
         end
         wait(2)
-        char:SetPrimaryPartCFrame(origPos)
-    else
-        warn("Radio table not found.")
+        Character:SetPrimaryPartCFrame(PositionV)
     end
 end)
 
@@ -342,34 +335,32 @@ MiscSection:NewToggle("Toggle Day/Night", "Toggle between day and night", functi
     workspace.GameSetting.NightTime.Value = not state
 end)
 
-local instantPromptEnabled = false
-local instantPromptConnection
+local InstantPrompt = false
 
-MiscSection:NewToggle("Instant Prompt", "Toggle to instantly fire proximity prompts", function(state)
-    instantPromptEnabled = state
-    if instantPromptEnabled then
-        instantPromptConnection = game:GetService("ProximityPromptService").PromptButtonHoldBegan:Connect(function(prompt)
-            if instantPromptEnabled then
+MiscSection:NewToggle("Instant Prompt", "Toggle to remove proximity prompts cooldown", function(state)
+    InstantPrompt = state
+    if InstantPrompt then
+        InstantPromptConnection = game:GetService("ProximityPromptService").PromptButtonHoldBegan:Connect(function(prompt)
+            if InstantPrompt then
                 fireproximityprompt(prompt)
             end
         end)
     else
-        if instantPromptConnection then
-            instantPromptConnection:Disconnect()
+        if InstantPromptConnection then
+            InstantPromptConnection:Disconnect()
         end
     end
 end)
 
-local function onKeyPressed(key, damageMultiplier)
+local function KeyV(key, DMGMulti)
     if key == "g" then
-        local player = game.Players.LocalPlayer
         local args = {
             [1] = "UseItem",
-            [2] = workspace:WaitForChild(player.Name)
+            [2] = workspace:WaitForChild(game.Players.LocalPlayer.Name)
         }
 
-        if damageMultiplierEnabled then
-            for i = 1, damageMultiplier do
+        if DMGMultiEnabled then
+            for i = 1, DMGMulti do
                 game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PrimaryEvent"):FireServer(unpack(args))
                 wait()
             end
@@ -380,53 +371,53 @@ local function onKeyPressed(key, damageMultiplier)
 end
 
 local DamageMultiplierSection = MiscTab:NewSection("Damage Multiplier")
-DamageMultiplierSection:NewLabel("You need pipe for this")
+DamageMultiplierSection:NewLabel("Pipe required")
 
-local damageMultiplier = 1
-local damageMultiplierEnabled = false
-local connectionsMultiplier = {}
+local DMGMulti = 1
+local DMGMultiEnabled = false
+local MConnection = {}
 
-local function handleDamageMultiplier(value)
-    if damageMultiplier ~= value then
-        damageMultiplier = value
+local function HDMGMULTI(value)
+    if DMGMulti ~= value then
+        DMGMulti = value
 
-        if damageMultiplierEnabled then
-            local currentConnections = #connectionsMultiplier
-            if currentConnections < damageMultiplier then
-                for i = currentConnections + 1, damageMultiplier do
-                    connectionsMultiplier[i] = game.Players.LocalPlayer:GetMouse().KeyDown:Connect(onKeyPressed)
+        if DMGMultiEnabled then
+            local CConnection = #MConnection
+            if CConnection < DMGMulti then
+                for i = CConnection + 1, DMGMulti do
+                    MConnection[i] = game.Players.LocalPlayer:GetMouse().KeyDown:Connect(KeyV)
                 end
-            elseif currentConnections > damageMultiplier then
-                for i = currentConnections, damageMultiplier + 1, -1 do
-                    connectionsMultiplier[i]:Disconnect()
-                    connectionsMultiplier[i] = nil
+            elseif CConnection > DMGMulti then
+                for i = CConnection, DMGMulti + 1, -1 do
+                    MConnection[i]:Disconnect()
+                    MConnection[i] = nil
                 end
             end
         end
     end
 end
 
-local function toggleDamageMultiplier(state)
-    damageMultiplierEnabled = state
+local function TDMG(state)
+    DMGMultiEnabled = state
 
-    if damageMultiplierEnabled then
-        for i = 1, damageMultiplier do
-            connectionsMultiplier[i] = game.Players.LocalPlayer:GetMouse().KeyDown:Connect(onKeyPressed)
+    if DMGMultiEnabled then
+        for i = 1, DMGMulti do
+            MConnection[i] = game.Players.LocalPlayer:GetMouse().KeyDown:Connect(KeyV)
         end
     else
-        for _, connection in ipairs(connectionsMultiplier) do
+        for _, connection in ipairs(MConnection) do
             connection:Disconnect()
         end
-        connectionsMultiplier = {}
+        MConnection = {}
     end
 end
 
-DamageMultiplierSection:NewSlider("Damage Multiplier", "Set the damage multiplier for hitting", 30, 1, function(value)
-    handleDamageMultiplier(value)
+DamageMultiplierSection:NewSlider("Damage Multiplier", "Set the damage multiplier", 30, 1, function(value)
+    HDMGMULTI(value)
 end)
 
-DamageMultiplierSection:NewToggle("Enable Damage Multiplier (G)", "Press G key to Attack", function(state)
-    toggleDamageMultiplier(state)
+DamageMultiplierSection:NewToggle("Enable Damage Multiplier (G)", "", function(state)
+    TDMG(state)
 end)
 
 local Settings = Window:NewTab("Settings")
