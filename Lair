@@ -10,7 +10,7 @@ end
 
 --// Function \\--
 
-local DamageMultiply = 30 -- 30 is Recommended (50 works better, as your heart's desired)
+local DamageMultiply = 30
 
 --// Breakdown \\--
 
@@ -34,7 +34,7 @@ while true do
 end
 
 while true do
-    wait(1)  -- Wait for player's character to be available
+    wait(1)
     char = player.Character
     if char and char:FindFirstChild("Humanoid") then
         origPos = char.HumanoidRootPart.CFrame
@@ -43,55 +43,51 @@ while true do
     end
 end
 
-local itemPart = workspace.Pickups.PipePickup.Pickup
+-- One
 
+local itemPart = workspace.Pickups.PipePickup.Pickup
 while true do
     char = player.Character
     if char and char:FindFirstChild("Humanoid") then
         if itemPart then
-            -- Teleport to the item and pick it up
+
             char:SetPrimaryPartCFrame(CFrame.new(itemPart.Position))
             wait(0.25)
             char:SetPrimaryPartCFrame(origPos)
             wait(0.25)
             itemPart = workspace.Pickups.PipePickup.Pickup
-            
-            -- Fire the proximity prompt on the item
+
             local itemPrompt = itemPart:FindFirstChild("PickupPrompt")
             if itemPrompt then
                 fireproximityprompt(itemPrompt)
             else
                 warn("Proximity prompt not found!")
             end
-            
-            -- Check if the player's current weapon value is "Knife"
+
             local localPlayerObject = workspace:FindFirstChild(player.Name)
             if localPlayerObject and localPlayerObject:FindFirstChild("CharacterStats") then
                 local currentWeapon = localPlayerObject.CharacterStats:FindFirstChild("CurrentWeapon")
                 if currentWeapon then
                     if currentWeapon.Value == "Knife" then
-                        -- Swap weapon to "Pipe"
                         local args = {
                             [1] = "Swap"
                         }
                         game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PrimaryEvent"):FireServer(unpack(args))
-                        break  -- Exit the loop if the weapon has been changed to "Pipe"
+                        break
                     elseif currentWeapon.Value == "Pipe" then
-                        break  -- Exit the loop if the current weapon is already "Pipe"
+                        break 
                     end
                 end
 
                 local secondaryWeapon = localPlayerObject.CharacterStats:FindFirstChild("SecondaryWeapon")
                 if secondaryWeapon and secondaryWeapon.Value ~= "Pipe" then
-                    -- Teleport to the PipePickup and pick it up until it becomes the secondary weapon
                     while secondaryWeapon.Value ~= "Pipe" do
                         char:SetPrimaryPartCFrame(CFrame.new(itemPart.Position))
                         wait(0.25)
                         char:SetPrimaryPartCFrame(origPos)
                         wait(0.25)
                         itemPart = workspace.Pickups.PipePickup.Pickup
-                        
-                        -- Fire the proximity prompt on the item
+
                         local itemPrompt = itemPart:FindFirstChild("PickupPrompt")
                         if itemPrompt then
                             fireproximityprompt(itemPrompt)
@@ -107,9 +103,10 @@ while true do
             warn("Item part not found!")
         end
     else
-        wait(1)  -- Wait for player's character and humanoid to be available
+        wait(1)
     end
 end
+
 local playerFound = false
 
 while not playerFound do
@@ -125,16 +122,18 @@ while not playerFound do
                 character.HumanoidRootPart.CFrame = CFrame.new(targetPosition)
                 playerFound = true
             else
-                wait(1)  -- Wait for player to spawn before checking again
+                wait(1)
             end
         else
-            wait(1)  -- Wait for player to spawn before checking again
+            wait(1)
         end
     else
-        warn("This script is not meant for the current place.")
-        break  -- Exit the loop if the place is not correct
+        warn("Ohio")
+        break
     end
 end
+
+-- vermillion saved
 
 local function onKeyPressed2(key, damageMultiplier)
     if key == "g" then
@@ -146,10 +145,12 @@ local function onKeyPressed2(key, damageMultiplier)
 
         for i = 1, damageMultiplier do
             game:GetService("ReplicatedStorage"):WaitForChild("Events"):WaitForChild("PrimaryEvent"):FireServer(unpack(args))
-            wait() -- Adjust this wait time (in seconds) if necessary to control the speed of the hits.
+            wait()
         end
     end
 end
+
+-- Two
 
 local function autoKillEntities(damageMultiplier)
     local player = game.Players.LocalPlayer
@@ -159,10 +160,8 @@ local function autoKillEntities(damageMultiplier)
         return entity and entity:FindFirstChild("Humanoid") and entity.Humanoid.Health > 0
     end
 
-    -- Store the original position before teleporting
     local origPos = char.HumanoidRootPart.CFrame
 
-    -- Function to kill a specific entity
     local function killEntity(entity)
         local targetPosition = entity.UpperTorso.Position
         char:SetPrimaryPartCFrame(CFrame.new(targetPosition))
@@ -171,7 +170,6 @@ local function autoKillEntities(damageMultiplier)
         char:SetPrimaryPartCFrame(origPos)
     end
 
-    -- Function to handle killing the "ZERO" entity
     local function killZero()
         local zeroEntity = workspace.Entities2:FindFirstChild("ZERO")
         if zeroEntity and zeroEntity:FindFirstChild("Humanoid") and zeroEntity.Humanoid.Health > 0 then
@@ -196,7 +194,7 @@ local function autoKillEntities(damageMultiplier)
         end
     end
 
-    killZero() -- Check and kill "ZERO" entity if it exists
+    killZero() -- I hate you zeroexclamationmark
 end
 
 while true do
@@ -210,15 +208,17 @@ while true do
     end
 
     if entitiesSpawned then
-        autoKillEntities(DamageMultiply) -- Call the autoKillEntities function with a damage multiplier of 30
-        wait(1) -- Wait before checking again
+        autoKillEntities(DamageMultiply) -- AutoKill
+        wait(1)
     else
-        wait(1) -- Wait if no entities are spawned
+        wait(1)
     end
 end
 
+-- Three
+
 while true do
-    wait(0.1)  -- Wait for the game to load
+    wait(0.1)
     if workspace.GameSetting.Countdown.Value == 415 then
         warn("Zero Disappeared, Restarting...")
         workspace.GameSetting.GameEnded.Value = true
